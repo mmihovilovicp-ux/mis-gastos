@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mis Gastos">
+<title>Mis Gastos</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1c1c1e; min-height: 100vh; }
+  header { background: #fff; border-bottom: 0.5px solid #e0e0e0; padding: 16px 20px; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 20px; font-weight: 600; }
+  header p { font-size: 13px; color: #888; margin-top: 2px; }
+  .tabs { display: flex; background: #fff; border-bottom: 0.5px solid #e0e0e0; }
+  .tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 500; color: #888; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #007AFF; border-bottom-color: #007AFF; }
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; }
+  .card { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 16px; margin-bottom: 12px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .card-banco { font-size: 12px; font-weight: 600; color: #007AFF; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-fecha { font-size: 12px; color: #888; }
+  .card-monto { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px; }
+  .card-comercio { font-size: 13px; color: #555; margin-bottom: 12px; }
+  .card-item-badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .card-pendiente { display: inline-block; background: #fff3e0; color: #e65100; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .btn-categorizar { width: 100%; padding: 10px; background: #007AFF; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 10px; }
+  .btn-categorizar:active { background: #0056CC; }
+  .empty { text-align: center; padding: 60px 20px; color: #888; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 15px; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: flex-end; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 80vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
+  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .modal-info { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 16px; background: #f9f9f9; outline: none; }
+  .form-input:focus { border-color: #007AFF; background: #fff; }
+  .familia-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 6px; }
+  .familia-btn { padding: 10px; border: 0.5px solid #ddd; border-radius: 10px; background: #f9f9f9; font-size: 13px; cursor: pointer; text-align: center; }
+  .familia-btn.selected { border-color: #007AFF; background: #e8f0fe; color: #007AFF; font-weight: 500; }
+  .btn-guardar { width: 100%; padding: 14px; background: #007AFF; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .btn-guardar:disabled { background: #ccc; }
+  .btn-cancelar { width: 100%; padding: 12px; background: none; color: #888; border: none; font-size: 15px; cursor: pointer; margin-top: 8px; }
+  .config-row { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px 16px; margin-bottom: 8px; }
+  .config-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+  .config-input { width: 100%; border: none; font-size: 15px; outline: none; background: none; }
+  .btn-guardar-config { width: 100%; padding: 14px; background: #34C759; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; display: none; z-index: 200; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px; }
+  .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .stat-value { font-size: 20px; font-weight: 700; color: #1c1c1e; }
+  .resumen-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; }
+  .resumen-familia { font-size: 14px; font-weight: 500; }
+  .resumen-monto { font-size: 14px; font-weight: 600; color: #007AFF; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💰 Mis Gastos</h1>
+  <p id="header-fecha">Cargando...</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('pendientes')">Pendientes</button>
+  <button class="tab" onclick="showTab('registrados')">Registrados</button>
+  <button class="tab" onclick="showTab('resumen')">Resumen</button>
+  <button class="tab" onclick="showTab('config')">Config</button>
+</div>
+
+<div id="tab-pendientes" class="section active">
+  <div id="lista-pendientes"></div>
+</div>
+
+<div id="tab-registrados" class="section">
+  <div id="lista-registrados"></div>
+</div>
+
+<div id="tab-resumen" class="section">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Total del mes</div>
+      <div class="stat-value" id="stat-total">$0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Transacciones</div>
+      <div class="stat-value" id="stat-count">0</div>
+    </div>
+  </div>
+  <div id="lista-resumen"></div>
+</div>
+
+<div id="tab-config" class="section">
+  <div class="config-row">
+    <div class="config-label">URL Webhook de Make (para guardar en Sheets)</div>
+    <input class="config-input" id="config-webhook" placeholder="https://hook.us2.make.com/..." />
+  </div>
+  <div class="config-row">
+    <div class="config-label">URL Webhook de Make (para recibir transacciones)</div>
+    <input class="config-input" id="config-webhook-recibir" placeholder="https://hook.us2.make.com/..." readonly style="color:#888;font-size:13px;" />
+    <p style="font-size:12px;color:#aaa;margin-top:4px;">Esta URL la debes pegar en tu escenario 1 de Make como destino de respuesta</p>
+  </div>
+  <button class="btn-guardar-config" onclick="guardarConfig()">Guardar configuración</button>
+  <div style="margin-top: 24px;">
+    <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Agregar transacción manual (para pruebas)</p>
+    <button onclick="agregarPrueba()" style="width:100%;padding:12px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:14px;cursor:pointer;">+ Agregar transacción de prueba</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2 id="modal-titulo">Categorizar gasto</h2>
+    <p class="modal-info" id="modal-info"></p>
+    <div class="form-group">
+      <label class="form-label">Item (¿en qué gastaste?)</label>
+      <input class="form-input" id="modal-item" placeholder="ej: Supermercado, Kine, Gasolina..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Familia</label>
+      <div class="familia-grid" id="familia-grid"></div>
+    </div>
+    <button class="btn-guardar" id="btn-guardar-gasto" onclick="guardarGasto()">Guardar en Sheets</button>
+    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FAMILIAS = ['Alimentación','Transporte','Salud','Educación','Hogar','Ocio','Ropa','Servicios','Otros'];
+let transaccionesPendientes = [];
+let transaccionesRegistradas = [];
+let transaccionActual = null;
+let familiaSeleccionada = '';
+let config = { webhook: '', webhookRecibir: window.location.href };
+
+function init() {
+  const stored = localStorage.getItem('gastos_config');
+  if (stored) config = { ...config, ...JSON.parse(stored) };
+  document.getElementById('config-webhook').value = config.webhook || '';
+  document.getElementById('config-webhook-recibir').value = config.webhookRecibir || window.location.href;
+
+  const pending = localStorage.getItem('gastos_pendientes');
+  if (pending) transaccionesPendientes = JSON.parse(pending);
+
+  const registered = localStorage.getItem('gastos_registrados');
+  if (registered) transaccionesRegistradas = JSON.parse(registered);
+
+  const now = new Date();
+  document.getElementById('header-fecha').textContent = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  renderFamilias();
+  renderPendientes();
+  renderRegistrados();
+  renderResumen();
+}
+
+function renderFamilias() {
+  const grid = document.getElementById('familia-grid');
+  grid.innerHTML = FAMILIAS.map(f => `<button class="familia-btn ${familiaSeleccionada===f?'selected':''}" onclick="selFamilia('${f}')">${f}</button>`).join('');
+}
+
+function selFamilia(f) {
+  familiaSeleccionada = f;
+  renderFamilias();
+}
+
+function parsearMonto(texto) {
+  const match = texto.match(/\$\s*([\d.,]+)/);
+  if (!match) return 0;
+  return parseInt(match[1].replace(/\./g,'').replace(',',''));
+}
+
+function parsearFecha(texto) {
+  const match = texto.match(/(\d{2}-\d{2}-\d{4})/);
+  return match ? match[1] : new Date().toLocaleDateString('es-CL');
+}
+
+function parsearComercio(texto) {
+  const match = texto.match(/en (.+?) el \d/);
+  if (match) return match[1].trim();
+  const match2 = texto.match(/hacia tu cuenta (\d+)/);
+  if (match2) return 'Transferencia → ' + match2[1];
+  return 'Transacción';
+}
+
+function renderPendientes() {
+  const el = document.getElementById('lista-pendientes');
+  if (transaccionesPendientes.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>No hay transacciones pendientes</p><p style="font-size:13px;margin-top:8px;color:#aaa;">Las nuevas llegadas de Santander aparecerán aquí</p></div>`;
+    return;
+  }
+  el.innerHTML = transaccionesPendientes.map((t, i) => `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-banco">${t.banco}</span>
+        <span class="card-fecha">${t.fecha}</span>
+      </div>
+      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
+      <div class="card-comercio">${t.comercio}</div>
+      <span class="card-pendiente">Pendiente</span>
+      <button class="btn-categorizar" onclick="abrirModal(${i})">Categorizar →</button>
+    </div>
+  `).join('');
+}
+
+function renderRegistrados() {
+  const el = document.getElementById('lista-registrados');
+  if (transaccionesRegistradas.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Aún no hay gastos registrados</p></div>`;
+    return;
+  }
+  const sorted = [...transaccionesRegistradas].reverse();
+  el.innerHTML = sorted.map(t => `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-banco">${t.banco}</span>
+        <span class="card-fecha">${t.fecha}</span>
+      </div>
+      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
+      <div class="card-comercio">${t.comercio}</div>
+      <span class="card-item-badge">${t.item} · ${t.familia}</span>
+    </div>
+  `).join('');
+}
+
+function renderResumen() {
+  const total = transaccionesRegistradas.reduce((s, t) => s + t.monto, 0);
+  document.getElementById('stat-total').textContent = '$' + total.toLocaleString('es-CL');
+  document.getElementById('stat-count').textContent = transaccionesRegistradas.length;
+
+  const porFamilia = {};
+  transaccionesRegistradas.forEach(t => {
+    porFamilia[t.familia] = (porFamilia[t.familia] || 0) + t.monto;
+  });
+
+  const sorted = Object.entries(porFamilia).sort((a,b) => b[1]-a[1]);
+  document.getElementById('lista-resumen').innerHTML = sorted.length === 0 
+    ? '<div class="empty"><div class="empty-icon">📊</div><p>Sin datos aún</p></div>'
+    : sorted.map(([f, m]) => `<div class="resumen-item"><span class="resumen-familia">${f}</span><span class="resumen-monto">$${m.toLocaleString('es-CL')}</span></div>`).join('');
+}
+
+function abrirModal(i) {
+  transaccionActual = i;
+  familiaSeleccionada = '';
+  const t = transaccionesPendientes[i];
+  document.getElementById('modal-titulo').textContent = '$' + t.monto.toLocaleString('es-CL');
+  document.getElementById('modal-info').textContent = t.comercio + ' · ' + t.fecha;
+  document.getElementById('modal-item').value = '';
+  renderFamilias();
+  document.getElementById('modal').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal').classList.remove('open');
+  transaccionActual = null;
+}
+
+async function guardarGasto() {
+  const item = document.getElementById('modal-item').value.trim();
+  if (!item) { showToast('Escribe el item'); return; }
+  if (!familiaSeleccionada) { showToast('Selecciona una familia'); return; }
+
+  const t = transaccionesPendientes[transaccionActual];
+  const registro = { ...t, item, familia: familiaSeleccionada };
+
+  const btn = document.getElementById('btn-guardar-gasto');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  if (config.webhook) {
+    try {
+      await fetch(config.webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          familia: familiaSeleccionada,
+          item,
+          banco: t.banco,
+          fecha: t.fecha,
+          monto: t.monto,
+          texto: t.textoOriginal
+        })
+      });
+    } catch(e) {
+      console.log('Error webhook:', e);
+    }
+  }
+
+  transaccionesPendientes.splice(transaccionActual, 1);
+  transaccionesRegistradas.push(registro);
+  localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
+  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar en Sheets';
+  cerrarModal();
+  renderPendientes();
+  renderRegistrados();
+  renderResumen();
+  showToast('✓ Gasto registrado');
+}
+
+function guardarConfig() {
+  config.webhook = document.getElementById('config-webhook').value.trim();
+  localStorage.setItem('gastos_config', JSON.stringify(config));
+  showToast('✓ Configuración guardada');
+}
+
+function agregarPrueba() {
+  const ejemplos = [
+    'SantanderTransacción por $ 15.468. se realizó una compra con tu Tarjeta de Crédito 5652 en AUTO CL ALEMANA LA DEH el 17-06-2026 a las 18:01:15.',
+    'SantanderTransacción por $ 6.462. se realizó una compra con tu Tarjeta de Crédito 2612 en UNIMARC LAS TRANQUERAS el 17-06-2026 a las 20:27:51.',
+    'El 17-06-2026 21:37:58 se realizó una Transferencia hacia tu cuenta 000072803000 por $ 1.000.'
+  ];
+  const texto = ejemplos[Math.floor(Math.random()*ejemplos.length)];
+  recibirTransaccion(texto);
+  showTab('pendientes');
+  showToast('✓ Transacción de prueba agregada');
+}
+
+function recibirTransaccion(texto) {
+  const monto = parsearMonto(texto);
+  const fecha = parsearFecha(texto);
+  const comercio = parsearComercio(texto);
+  transaccionesPendientes.unshift({ banco: 'Santander', monto, fecha, comercio, textoOriginal: texto });
+  localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
+  renderPendientes();
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const tabs = ['pendientes','registrados','resumen','config'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+
+window.addEventListener('message', e => {
+  if (e.data && e.data.tipo === 'transaccion') recibirTransaccion(e.data.texto);
+});
+
+init();
+</script>
+</body>
+</html>
