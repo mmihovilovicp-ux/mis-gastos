@@ -76,6 +76,7 @@
 </div>
 
 <div id="tab-pendientes" class="section active">
+  <button onclick="consultarTransaccionNueva()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:14px;cursor:pointer;">↻ Buscar transacciones nuevas</button>
   <div id="lista-pendientes"></div>
 </div>
 
@@ -103,9 +104,12 @@
     <input class="config-input" id="config-webhook" placeholder="https://hook.us2.make.com/..." />
   </div>
   <div class="config-row">
-    <div class="config-label">URL Webhook de Make (para recibir transacciones)</div>
-    <input class="config-input" id="config-webhook-recibir" placeholder="https://hook.us2.make.com/..." readonly style="color:#888;font-size:13px;" />
-    <p style="font-size:12px;color:#aaa;margin-top:4px;">Esta URL la debes pegar en tu escenario 1 de Make como destino de respuesta</p>
+    <div class="config-label">Make API Token</div>
+    <input class="config-input" id="config-token" placeholder="f71a15f0-..." />
+  </div>
+  <div class="config-row">
+    <div class="config-label">ID del Data Store (Transacciones)</div>
+    <input class="config-input" id="config-datastore" placeholder="109404" />
   </div>
   <button class="btn-guardar-config" onclick="guardarConfig()">Guardar configuración</button>
   <div style="margin-top: 24px;">
@@ -140,13 +144,14 @@ let transaccionesPendientes = [];
 let transaccionesRegistradas = [];
 let transaccionActual = null;
 let familiaSeleccionada = '';
-let config = { webhook: '', webhookRecibir: window.location.href };
+let config = { webhook: '', webhookRecibir: window.location.href, makeToken: '', makeDataStoreId: '', makeZone: 'us2' };
 
 function init() {
   const stored = localStorage.getItem('gastos_config');
   if (stored) config = { ...config, ...JSON.parse(stored) };
   document.getElementById('config-webhook').value = config.webhook || '';
-  document.getElementById('config-webhook-recibir').value = config.webhookRecibir || window.location.href;
+  document.getElementById('config-token').value = config.makeToken || '';
+  document.getElementById('config-datastore').value = config.makeDataStoreId || '';
 
   const pending = localStorage.getItem('gastos_pendientes');
   if (pending) transaccionesPendientes = JSON.parse(pending);
@@ -161,6 +166,31 @@ function init() {
   renderPendientes();
   renderRegistrados();
   renderResumen();
+  consultarTransaccionNueva();
+}
+
+async function consultarTransaccionNueva() {
+  if (!config.makeToken || !config.makeDataStoreId) return;
+  try {
+    const url = `https://${config.makeZone}.make.com/api/v2/data-stores/${config.makeDataStoreId}/data/ultima`;
+    const resp = await fetch(url, {
+      headers: { 'Authorization': 'Token ' + config.makeToken }
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const record = data.record || data.data || data;
+    const textoOriginal = record.Fecha || record.fecha || '';
+    if (!textoOriginal) return;
+
+    const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
+                      transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal);
+    if (yaExiste) return;
+
+    recibirTransaccion(textoOriginal);
+    showToast('📥 Nueva transacción detectada');
+  } catch(e) {
+    console.log('Error consultando Make:', e);
+  }
 }
 
 function renderFamilias() {
@@ -318,8 +348,11 @@ async function guardarGasto() {
 
 function guardarConfig() {
   config.webhook = document.getElementById('config-webhook').value.trim();
+  config.makeToken = document.getElementById('config-token').value.trim();
+  config.makeDataStoreId = document.getElementById('config-datastore').value.trim();
   localStorage.setItem('gastos_config', JSON.stringify(config));
   showToast('✓ Configuración guardada');
+  consultarTransaccionNueva();
 }
 
 function agregarPrueba() {
