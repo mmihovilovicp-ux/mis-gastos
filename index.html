@@ -172,24 +172,27 @@ function init() {
 async function consultarTransaccionNueva() {
   if (!config.makeToken || !config.makeDataStoreId) return;
   try {
-    const url = `https://${config.makeZone}.make.com/api/v2/data-stores/${config.makeDataStoreId}/data/ultima`;
+    const url = `https://${config.makeZone}.make.com/api/v2/data-stores/${config.makeDataStoreId}/data`;
     const resp = await fetch(url, {
       headers: { 'Authorization': 'Token ' + config.makeToken }
     });
-    if (!resp.ok) return;
+    if (!resp.ok) { showToast('⚠ Error API: ' + resp.status, true); return; }
     const data = await resp.json();
-    const record = data.record || data.data || data;
-    const textoOriginal = record.Fecha || record.fecha || '';
-    if (!textoOriginal) return;
+    const records = data.records || [];
+    const ultimaRec = records.find(r => r.key === 'ultima');
+    if (!ultimaRec) { showToast('⚠ No se encontró el registro "ultima"', true); return; }
+
+    const textoOriginal = ultimaRec.data.Fecha || ultimaRec.data.fecha || '';
+    if (!textoOriginal) { showToast('⚠ Registro sin texto', true); return; }
 
     const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
                       transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal);
-    if (yaExiste) return;
+    if (yaExiste) { showToast('No hay transacciones nuevas'); return; }
 
     recibirTransaccion(textoOriginal);
     showToast('📥 Nueva transacción detectada');
   } catch(e) {
-    console.log('Error consultando Make:', e);
+    showToast('⚠ Error: ' + e.message, true);
   }
 }
 
