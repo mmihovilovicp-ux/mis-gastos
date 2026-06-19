@@ -276,9 +276,11 @@ async function guardarGasto() {
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
+  let envioOk = true;
+  let errorMsg = '';
   if (config.webhook) {
     try {
-      await fetch(config.webhook, {
+      const resp = await fetch(config.webhook, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -290,9 +292,14 @@ async function guardarGasto() {
           texto: t.textoOriginal
         })
       });
+      if (!resp.ok) { envioOk = false; errorMsg = 'HTTP ' + resp.status; }
     } catch(e) {
-      console.log('Error webhook:', e);
+      envioOk = false;
+      errorMsg = e.message || 'Error de red';
     }
+  } else {
+    envioOk = false;
+    errorMsg = 'No hay webhook configurado';
   }
 
   transaccionesPendientes.splice(transaccionActual, 1);
@@ -306,7 +313,7 @@ async function guardarGasto() {
   renderPendientes();
   renderRegistrados();
   renderResumen();
-  showToast('✓ Gasto registrado');
+  showToast(envioOk ? '✓ Gasto registrado y enviado' : '⚠ Error: ' + errorMsg, !envioOk);
 }
 
 function guardarConfig() {
@@ -345,11 +352,12 @@ function showTab(tab) {
   document.getElementById('tab-'+tab).classList.add('active');
 }
 
-function showToast(msg) {
+function showToast(msg, esError) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.style.display = 'block';
-  setTimeout(() => t.style.display = 'none', 2500);
+  t.style.background = esError ? '#a32d2d' : '#1c1c1e';
+  setTimeout(() => t.style.display = 'none', esError ? 5000 : 2500);
 }
 
 window.addEventListener('message', e => {
