@@ -142,6 +142,7 @@
   </div>
   <div style="margin-top: 24px;">
     <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Zona de peligro</p>
+    <button onclick="limpiarDataStoreMake()" style="width:100%;padding:12px;border:0.5px solid #ff9500;border-radius:10px;background:none;color:#ff9500;font-size:14px;cursor:pointer;margin-bottom:10px;">🧹 Limpiar registros viejos en Make</button>
     <button onclick="resetearTodo()" style="width:100%;padding:12px;border:0.5px solid #ff3b30;border-radius:10px;background:none;color:#ff3b30;font-size:14px;cursor:pointer;">🗑 Borrar todo el historial de la app</button>
   </div>
 </div>
@@ -579,6 +580,21 @@ function descartarTransaccion(i) {
   localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
   renderPendientes();
   showToast('Transacción descartada');
+}
+
+async function limpiarDataStoreMake() {
+  if (!config.webhookConsulta) { showToast('⚠ Falta configurar el webhook', true); return; }
+  if (!confirm('¿Borrar todos los registros de transacciones guardados en Make? Esto no afecta tu Google Sheets ni el historial de la app.')) return;
+  try {
+    const resp = await fetch(config.webhookConsulta, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'limpiar' })
+    });
+    showToast(resp.ok ? '✓ Registros viejos limpiados en Make' : '⚠ Error: ' + resp.status, !resp.ok);
+  } catch(e) {
+    showToast('⚠ Error: ' + e.message, true);
+  }
 }
 
 function resetearTodo() {
