@@ -112,6 +112,10 @@
     <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Agregar transacción manual (para pruebas)</p>
     <button onclick="agregarPrueba()" style="width:100%;padding:12px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:14px;cursor:pointer;">+ Agregar transacción de prueba</button>
   </div>
+  <div style="margin-top: 24px;">
+    <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Zona de peligro</p>
+    <button onclick="resetearTodo()" style="width:100%;padding:12px;border:0.5px solid #ff3b30;border-radius:10px;background:none;color:#ff3b30;font-size:14px;cursor:pointer;">🗑 Borrar todo el historial de la app</button>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modal">
@@ -339,6 +343,18 @@ async function guardarGasto() {
   renderRegistrados();
   renderResumen();
   showToast(envioOk ? '✓ Gasto registrado y enviado' : '⚠ Error: ' + errorMsg, !envioOk);
+}
+
+function resetearTodo() {
+  if (!confirm('¿Borrar todo el historial de pendientes y registrados? Esto no afecta tu Google Sheets.')) return;
+  transaccionesPendientes = [];
+  transaccionesRegistradas = [];
+  localStorage.removeItem('gastos_pendientes');
+  localStorage.removeItem('gastos_registrados');
+  renderPendientes();
+  renderRegistrados();
+  renderResumen();
+  showToast('✓ Historial borrado');
 }
 
 function guardarConfig() {
