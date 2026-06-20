@@ -237,6 +237,7 @@ function renderPendientes() {
       <div class="card-comercio">${t.comercio}</div>
       <span class="card-pendiente">Pendiente</span>
       <button class="btn-categorizar" onclick="abrirModal(${i})">Categorizar →</button>
+      <button onclick="descartarTransaccion(${i})" style="width:100%;padding:8px;margin-top:8px;border:none;background:none;color:#ff3b30;font-size:13px;cursor:pointer;">Descartar (no guardar)</button>
     </div>
   `).join('');
 }
@@ -343,6 +344,14 @@ async function guardarGasto() {
   renderRegistrados();
   renderResumen();
   showToast(envioOk ? '✓ Gasto registrado y enviado' : '⚠ Error: ' + errorMsg, !envioOk);
+}
+
+function descartarTransaccion(i) {
+  if (!confirm('¿Descartar esta transacción sin guardarla?')) return;
+  transaccionesPendientes.splice(i, 1);
+  localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
+  renderPendientes();
+  showToast('Transacción descartada');
 }
 
 function resetearTodo() {
