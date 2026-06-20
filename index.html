@@ -104,12 +104,8 @@
     <input class="config-input" id="config-webhook" placeholder="https://hook.us2.make.com/..." />
   </div>
   <div class="config-row">
-    <div class="config-label">Make API Token</div>
-    <input class="config-input" id="config-token" placeholder="f71a15f0-..." />
-  </div>
-  <div class="config-row">
-    <div class="config-label">ID del Data Store (Transacciones)</div>
-    <input class="config-input" id="config-datastore" placeholder="109404" />
+    <div class="config-label">URL Webhook de Make (para consultar transacciones - MacroDroid)</div>
+    <input class="config-input" id="config-webhook-consulta" placeholder="https://hook.us2.make.com/..." />
   </div>
   <button class="btn-guardar-config" onclick="guardarConfig()">Guardar configuración</button>
   <div style="margin-top: 24px;">
@@ -144,14 +140,13 @@ let transaccionesPendientes = [];
 let transaccionesRegistradas = [];
 let transaccionActual = null;
 let familiaSeleccionada = '';
-let config = { webhook: '', webhookRecibir: window.location.href, makeToken: '', makeDataStoreId: '', makeZone: 'us2' };
+let config = { webhook: '', webhookConsulta: '', webhookRecibir: window.location.href, makeToken: '', makeDataStoreId: '', makeZone: 'us2' };
 
 function init() {
   const stored = localStorage.getItem('gastos_config');
   if (stored) config = { ...config, ...JSON.parse(stored) };
   document.getElementById('config-webhook').value = config.webhook || '';
-  document.getElementById('config-token').value = config.makeToken || '';
-  document.getElementById('config-datastore').value = config.makeDataStoreId || '';
+  document.getElementById('config-webhook-consulta').value = config.webhookConsulta || '';
 
   const pending = localStorage.getItem('gastos_pendientes');
   if (pending) transaccionesPendientes = JSON.parse(pending);
@@ -170,20 +165,17 @@ function init() {
 }
 
 async function consultarTransaccionNueva() {
-  if (!config.makeToken || !config.makeDataStoreId) return;
+  if (!config.webhookConsulta) { showToast('⚠ Falta configurar el webhook de consulta', true); return; }
   try {
-    const url = `https://${config.makeZone}.make.com/api/v2/data-stores/${config.makeDataStoreId}/data`;
-    const resp = await fetch(url, {
-      headers: { 'Authorization': 'Token ' + config.makeToken }
+    const resp = await fetch(config.webhookConsulta, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'consultar' })
     });
-    if (!resp.ok) { showToast('⚠ Error API: ' + resp.status, true); return; }
-    const data = await resp.json();
-    const records = data.records || [];
-    const ultimaRec = records.find(r => r.key === 'ultima');
-    if (!ultimaRec) { showToast('⚠ No se encontró el registro "ultima"', true); return; }
-
-    const textoOriginal = ultimaRec.data.Fecha || ultimaRec.data.fecha || '';
-    if (!textoOriginal) { showToast('⚠ Registro sin texto', true); return; }
+    if (!resp.ok) { showToast('⚠ Error: ' + resp.status, true); return; }
+    const record = await resp.json();
+    const textoOriginal = record.fecha || record.Fecha || '';
+    if (!textoOriginal) { showToast('⚠ Respuesta sin datos', true); return; }
 
     const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
                       transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal);
@@ -351,8 +343,7 @@ async function guardarGasto() {
 
 function guardarConfig() {
   config.webhook = document.getElementById('config-webhook').value.trim();
-  config.makeToken = document.getElementById('config-token').value.trim();
-  config.makeDataStoreId = document.getElementById('config-datastore').value.trim();
+  config.webhookConsulta = document.getElementById('config-webhook-consulta').value.trim();
   localStorage.setItem('gastos_config', JSON.stringify(config));
   showToast('✓ Configuración guardada');
   consultarTransaccionNueva();
