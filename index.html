@@ -152,7 +152,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">Monto</label>
-      <input class="form-input" id="manual-monto" type="number" placeholder="ej: 15000" />
+      <input class="form-input" id="manual-monto" type="text" inputmode="numeric" placeholder="$ 15.000" oninput="formatearMontoInput(this)" />
     </div>
     <div class="form-group">
       <label class="form-label">Comercio / Descripción</label>
@@ -182,7 +182,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">Monto</label>
-      <input class="form-input" id="editar-monto" type="number" />
+      <input class="form-input" id="editar-monto" type="text" inputmode="numeric" oninput="formatearMontoInput(this)" />
     </div>
     <div class="form-group">
       <label class="form-label">Comercio / Descripción</label>
@@ -409,6 +409,17 @@ async function guardarGasto() {
   showToast(envioOk ? '✓ Gasto registrado y enviado' : '⚠ Error: ' + errorMsg, !envioOk);
 }
 
+function formatearMontoInput(input) {
+  let raw = input.value.replace(/\D/g, '');
+  if (!raw) { input.value = ''; return; }
+  input.value = '$ ' + parseInt(raw).toLocaleString('es-CL');
+}
+
+function montoDesdeInput(id) {
+  const raw = document.getElementById(id).value.replace(/\D/g, '');
+  return raw ? parseInt(raw) : 0;
+}
+
 function abrirModalManual() {
   document.getElementById('manual-banco').value = 'Santander';
   document.getElementById('manual-monto').value = '';
@@ -426,7 +437,7 @@ function cerrarModalManual() {
 
 function guardarManual() {
   const banco = document.getElementById('manual-banco').value.trim() || 'Santander';
-  const monto = parseInt(document.getElementById('manual-monto').value);
+  const monto = montoDesdeInput('manual-monto');
   const comercio = document.getElementById('manual-comercio').value.trim() || 'Transacción manual';
   const fecha = document.getElementById('manual-fecha').value.trim();
 
@@ -447,7 +458,7 @@ function editarRegistro(i) {
   const t = transaccionesRegistradas[i];
   editarFamiliaSel = t.familia;
   document.getElementById('editar-item').value = t.item;
-  document.getElementById('editar-monto').value = t.monto;
+  document.getElementById('editar-monto').value = '$ ' + t.monto.toLocaleString('es-CL');
   document.getElementById('editar-comercio').value = t.comercio;
   renderEditarFamilias();
   document.getElementById('modal-editar').classList.add('open');
@@ -471,7 +482,7 @@ function cerrarModalEditar() {
 function guardarEdicion() {
   if (editarIdx === null) return;
   const item = document.getElementById('editar-item').value.trim();
-  const monto = parseInt(document.getElementById('editar-monto').value);
+  const monto = montoDesdeInput('editar-monto');
   const comercio = document.getElementById('editar-comercio').value.trim();
 
   if (!item) { showToast('El item no puede estar vacío', true); return; }
