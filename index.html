@@ -76,7 +76,10 @@
 </div>
 
 <div id="tab-pendientes" class="section active">
-  <button onclick="consultarTransaccionNueva()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:14px;cursor:pointer;">↻ Buscar transacciones nuevas</button>
+  <div style="display:flex; gap:8px; margin-bottom:12px;">
+    <button onclick="consultarTransaccionNueva()" style="flex:1;padding:10px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">↻ Buscar nuevas</button>
+    <button onclick="abrirModalManual()" style="flex:1;padding:10px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:13px;cursor:pointer;">+ Agregar manual</button>
+  </div>
   <div id="lista-pendientes"></div>
 </div>
 
@@ -137,6 +140,59 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modal-manual">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Agregar transacción manual</h2>
+    <p class="modal-info">Para cuando no llegó la notificación del banco</p>
+    <div class="form-group">
+      <label class="form-label">Banco</label>
+      <input class="form-input" id="manual-banco" placeholder="Santander" value="Santander" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <input class="form-input" id="manual-monto" type="number" placeholder="ej: 15000" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comercio / Descripción</label>
+      <input class="form-input" id="manual-comercio" placeholder="ej: Supermercado Lider" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" id="manual-fecha" placeholder="dd-mm-aaaa" />
+    </div>
+    <button class="btn-guardar" onclick="guardarManual()">Agregar a pendientes</button>
+    <button class="btn-cancelar" onclick="cerrarModalManual()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Editar registro</h2>
+    <p class="modal-info">Esto solo edita la copia local de la app, no tu Google Sheets</p>
+    <div class="form-group">
+      <label class="form-label">Item</label>
+      <input class="form-input" id="editar-item" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Familia</label>
+      <div class="familia-grid" id="editar-familia-grid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <input class="form-input" id="editar-monto" type="number" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Comercio / Descripción</label>
+      <input class="form-input" id="editar-comercio" />
+    </div>
+    <button class="btn-guardar" onclick="guardarEdicion()">Guardar cambios</button>
+    <button class="btn-cancelar" onclick="eliminarRegistro()" style="color:#ff3b30;">Eliminar este registro</button>
+    <button class="btn-cancelar" onclick="cerrarModalEditar()">Cancelar</button>
+  </div>
+</div>
 
 <script>
 const FAMILIAS = ['Alimentación','Transporte','Salud','Educación','Hogar','Ocio','Ropa','Servicios','Otros'];
@@ -214,6 +270,10 @@ function parsearFecha(texto) {
 }
 
 function parsearComercio(texto) {
+  if (texto.startsWith('Manual:')) {
+    const match = texto.match(/Manual: (.+?) el/);
+    return match ? match[1].trim() : 'Transacción manual';
+  }
   const match = texto.match(/en (.+?) el \d/);
   if (match) return match[1].trim();
   const match2 = texto.match(/hacia tu cuenta (\d+)/);
@@ -249,7 +309,9 @@ function renderRegistrados() {
     return;
   }
   const sorted = [...transaccionesRegistradas].reverse();
-  el.innerHTML = sorted.map(t => `
+  el.innerHTML = sorted.map((t, i) => {
+    const realIdx = transaccionesRegistradas.indexOf(t);
+    return `
     <div class="card">
       <div class="card-header">
         <span class="card-banco">${t.banco}</span>
@@ -258,8 +320,9 @@ function renderRegistrados() {
       <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
       <div class="card-comercio">${t.comercio}</div>
       <span class="card-item-badge">${t.item} · ${t.familia}</span>
+      <button onclick="editarRegistro(${realIdx})" style="width:100%;padding:8px;margin-top:10px;border:0.5px solid #007AFF;border-radius:8px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">✏️ Editar</button>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function renderResumen() {
@@ -346,6 +409,96 @@ async function guardarGasto() {
   showToast(envioOk ? '✓ Gasto registrado y enviado' : '⚠ Error: ' + errorMsg, !envioOk);
 }
 
+function abrirModalManual() {
+  document.getElementById('manual-banco').value = 'Santander';
+  document.getElementById('manual-monto').value = '';
+  document.getElementById('manual-comercio').value = '';
+  const hoy = new Date();
+  const dd = String(hoy.getDate()).padStart(2,'0');
+  const mm = String(hoy.getMonth()+1).padStart(2,'0');
+  document.getElementById('manual-fecha').value = `${dd}-${mm}-${hoy.getFullYear()}`;
+  document.getElementById('modal-manual').classList.add('open');
+}
+
+function cerrarModalManual() {
+  document.getElementById('modal-manual').classList.remove('open');
+}
+
+function guardarManual() {
+  const banco = document.getElementById('manual-banco').value.trim() || 'Santander';
+  const monto = parseInt(document.getElementById('manual-monto').value);
+  const comercio = document.getElementById('manual-comercio').value.trim() || 'Transacción manual';
+  const fecha = document.getElementById('manual-fecha').value.trim();
+
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!fecha) { showToast('Ingresa una fecha', true); return; }
+
+  const textoOriginal = `Manual: ${comercio} el ${fecha} por $ ${monto} [${Date.now()}]`;
+  recibirTransaccion(textoOriginal, { banco, monto, fecha, comercio });
+  cerrarModalManual();
+  showToast('✓ Transacción manual agregada');
+}
+
+let editarIdx = null;
+let editarFamiliaSel = '';
+
+function editarRegistro(i) {
+  editarIdx = i;
+  const t = transaccionesRegistradas[i];
+  editarFamiliaSel = t.familia;
+  document.getElementById('editar-item').value = t.item;
+  document.getElementById('editar-monto').value = t.monto;
+  document.getElementById('editar-comercio').value = t.comercio;
+  renderEditarFamilias();
+  document.getElementById('modal-editar').classList.add('open');
+}
+
+function renderEditarFamilias() {
+  const grid = document.getElementById('editar-familia-grid');
+  grid.innerHTML = FAMILIAS.map(f => `<button class="familia-btn ${editarFamiliaSel===f?'selected':''}" onclick="selEditarFamilia('${f}')">${f}</button>`).join('');
+}
+
+function selEditarFamilia(f) {
+  editarFamiliaSel = f;
+  renderEditarFamilias();
+}
+
+function cerrarModalEditar() {
+  document.getElementById('modal-editar').classList.remove('open');
+  editarIdx = null;
+}
+
+function guardarEdicion() {
+  if (editarIdx === null) return;
+  const item = document.getElementById('editar-item').value.trim();
+  const monto = parseInt(document.getElementById('editar-monto').value);
+  const comercio = document.getElementById('editar-comercio').value.trim();
+
+  if (!item) { showToast('El item no puede estar vacío', true); return; }
+  if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
+
+  transaccionesRegistradas[editarIdx] = {
+    ...transaccionesRegistradas[editarIdx],
+    item, monto, comercio, familia: editarFamiliaSel
+  };
+  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
+  renderRegistrados();
+  renderResumen();
+  cerrarModalEditar();
+  showToast('✓ Cambios guardados (solo en la app)');
+}
+
+function eliminarRegistro() {
+  if (editarIdx === null) return;
+  if (!confirm('¿Eliminar este registro de la app? No afecta tu Google Sheets.')) return;
+  transaccionesRegistradas.splice(editarIdx, 1);
+  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
+  renderRegistrados();
+  renderResumen();
+  cerrarModalEditar();
+  showToast('✓ Registro eliminado de la app');
+}
+
 function descartarTransaccion(i) {
   if (!confirm('¿Descartar esta transacción sin guardarla?')) return;
   transaccionesPendientes.splice(i, 1);
@@ -386,11 +539,15 @@ function agregarPrueba() {
   showToast('✓ Transacción de prueba agregada');
 }
 
-function recibirTransaccion(texto) {
-  const monto = parsearMonto(texto);
-  const fecha = parsearFecha(texto);
-  const comercio = parsearComercio(texto);
-  transaccionesPendientes.unshift({ banco: 'Santander', monto, fecha, comercio, textoOriginal: texto });
+function recibirTransaccion(texto, datosManual) {
+  if (datosManual) {
+    transaccionesPendientes.unshift({ ...datosManual, textoOriginal: texto });
+  } else {
+    const monto = parsearMonto(texto);
+    const fecha = parsearFecha(texto);
+    const comercio = parsearComercio(texto);
+    transaccionesPendientes.unshift({ banco: 'Santander', monto, fecha, comercio, textoOriginal: texto });
+  }
   localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
   renderPendientes();
 }
