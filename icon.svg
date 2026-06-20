@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="100" fill="#007AFF"/>
+  <g transform="translate(256,256)">
+    <rect x="-160" y="-90" width="320" height="180" rx="16" fill="#ffffff"/>
+    <circle cx="0" cy="0" r="55" fill="none" stroke="#007AFF" stroke-width="10"/>
+    <text x="0" y="18" font-family="-apple-system, sans-serif" font-size="60" font-weight="700" fill="#007AFF" text-anchor="middle">$</text>
+    <circle cx="-128" cy="0" r="10" fill="#007AFF"/>
+    <circle cx="128" cy="0" r="10" fill="#007AFF"/>
+  </g>
+</svg>
