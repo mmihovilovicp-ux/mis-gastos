@@ -98,7 +98,32 @@
       <div class="stat-value" id="stat-count">0</div>
     </div>
   </div>
-  <div id="lista-resumen"></div>
+
+  <p style="font-size:13px;font-weight:600;color:#888;margin:18px 0 8px;text-transform:uppercase;letter-spacing:0.5px;">💼 Personal</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Total Personal</div>
+      <div class="stat-value" id="stat-total-personal">$0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Transacciones</div>
+      <div class="stat-value" id="stat-count-personal">0</div>
+    </div>
+  </div>
+  <div id="lista-resumen-personal"></div>
+
+  <p style="font-size:13px;font-weight:600;color:#888;margin:18px 0 8px;text-transform:uppercase;letter-spacing:0.5px;">👨‍👩‍👧 Familiar</p>
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Total Familiar</div>
+      <div class="stat-value" id="stat-total-familiar">$0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Transacciones</div>
+      <div class="stat-value" id="stat-count-familiar">0</div>
+    </div>
+  </div>
+  <div id="lista-resumen-familiar"></div>
 </div>
 
 <div id="tab-config" class="section">
@@ -133,6 +158,10 @@
     <div class="form-group">
       <label class="form-label">Familia</label>
       <div class="familia-grid" id="familia-grid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de gasto</label>
+      <div class="familia-grid" id="tipo-grid"></div>
     </div>
     <button class="btn-guardar" id="btn-guardar-gasto" onclick="guardarGasto()">Guardar en Sheets</button>
     <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
@@ -196,10 +225,12 @@
 
 <script>
 const FAMILIAS = ['Alimentación','Transporte','Salud','Educación','Hogar','Ocio','Ropa','Servicios','Otros'];
+const TIPOS = ['Personal','Familiar'];
 let transaccionesPendientes = [];
 let transaccionesRegistradas = [];
 let transaccionActual = null;
 let familiaSeleccionada = '';
+let tipoSeleccionado = '';
 let config = { webhook: '', webhookConsulta: '', webhookRecibir: window.location.href, makeToken: '', makeDataStoreId: '', makeZone: 'us2' };
 
 function init() {
@@ -233,16 +264,24 @@ async function consultarTransaccionNueva() {
       body: JSON.stringify({ accion: 'consultar' })
     });
     if (!resp.ok) { showToast('⚠ Error: ' + resp.status, true); return; }
-    const record = await resp.json();
-    const textoOriginal = record.fecha || record.Fecha || '';
-    if (!textoOriginal) { showToast('⚠ Respuesta sin datos', true); return; }
+    const registros = await resp.json();
+    const lista = Array.isArray(registros) ? registros : [registros];
 
-    const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
-                      transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal);
-    if (yaExiste) { showToast('No hay transacciones nuevas'); return; }
+    let nuevas = 0;
+    lista.forEach(rec => {
+      const data = rec.data || rec;
+      const textoOriginal = data.Fecha || data.fecha || '';
+      if (!textoOriginal) return;
 
-    recibirTransaccion(textoOriginal);
-    showToast('📥 Nueva transacción detectada');
+      const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
+                        transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal);
+      if (yaExiste) return;
+
+      recibirTransaccion(textoOriginal);
+      nuevas++;
+    });
+
+    showToast(nuevas > 0 ? `📥 ${nuevas} transacción(es) nueva(s)` : 'No hay transacciones nuevas');
   } catch(e) {
     showToast('⚠ Error: ' + e.message, true);
   }
@@ -256,6 +295,16 @@ function renderFamilias() {
 function selFamilia(f) {
   familiaSeleccionada = f;
   renderFamilias();
+}
+
+function renderTipos() {
+  const grid = document.getElementById('tipo-grid');
+  grid.innerHTML = TIPOS.map(t => `<button class="familia-btn ${tipoSeleccionado===t?'selected':''}" onclick="selTipo('${t}')">${t}</button>`).join('');
+}
+
+function selTipo(t) {
+  tipoSeleccionado = t;
+  renderTipos();
 }
 
 function parsearMonto(texto) {
@@ -319,7 +368,7 @@ function renderRegistrados() {
       </div>
       <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
       <div class="card-comercio">${t.comercio}</div>
-      <span class="card-item-badge">${t.item} · ${t.familia}</span>
+      <span class="card-item-badge">${t.item} · ${t.familia} · ${t.tipo || '-'}</span>
       <button onclick="editarRegistro(${realIdx})" style="width:100%;padding:8px;margin-top:10px;border:0.5px solid #007AFF;border-radius:8px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">✏️ Editar</button>
     </div>
   `}).join('');
@@ -330,25 +379,37 @@ function renderResumen() {
   document.getElementById('stat-total').textContent = '$' + total.toLocaleString('es-CL');
   document.getElementById('stat-count').textContent = transaccionesRegistradas.length;
 
+  renderResumenPorTipo('Personal', 'stat-total-personal', 'stat-count-personal', 'lista-resumen-personal');
+  renderResumenPorTipo('Familiar', 'stat-total-familiar', 'stat-count-familiar', 'lista-resumen-familiar');
+}
+
+function renderResumenPorTipo(tipo, idTotal, idCount, idLista) {
+  const filtradas = transaccionesRegistradas.filter(t => t.tipo === tipo);
+  const total = filtradas.reduce((s, t) => s + t.monto, 0);
+  document.getElementById(idTotal).textContent = '$' + total.toLocaleString('es-CL');
+  document.getElementById(idCount).textContent = filtradas.length;
+
   const porFamilia = {};
-  transaccionesRegistradas.forEach(t => {
+  filtradas.forEach(t => {
     porFamilia[t.familia] = (porFamilia[t.familia] || 0) + t.monto;
   });
 
   const sorted = Object.entries(porFamilia).sort((a,b) => b[1]-a[1]);
-  document.getElementById('lista-resumen').innerHTML = sorted.length === 0 
-    ? '<div class="empty"><div class="empty-icon">📊</div><p>Sin datos aún</p></div>'
+  document.getElementById(idLista).innerHTML = sorted.length === 0
+    ? `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es aún</p></div>`
     : sorted.map(([f, m]) => `<div class="resumen-item"><span class="resumen-familia">${f}</span><span class="resumen-monto">$${m.toLocaleString('es-CL')}</span></div>`).join('');
 }
 
 function abrirModal(i) {
   transaccionActual = i;
   familiaSeleccionada = '';
+  tipoSeleccionado = '';
   const t = transaccionesPendientes[i];
   document.getElementById('modal-titulo').textContent = '$' + t.monto.toLocaleString('es-CL');
   document.getElementById('modal-info').textContent = t.comercio + ' · ' + t.fecha;
   document.getElementById('modal-item').value = '';
   renderFamilias();
+  renderTipos();
   document.getElementById('modal').classList.add('open');
 }
 
@@ -361,9 +422,10 @@ async function guardarGasto() {
   const item = document.getElementById('modal-item').value.trim();
   if (!item) { showToast('Escribe el item'); return; }
   if (!familiaSeleccionada) { showToast('Selecciona una familia'); return; }
+  if (!tipoSeleccionado) { showToast('Selecciona Personal o Familiar'); return; }
 
   const t = transaccionesPendientes[transaccionActual];
-  const registro = { ...t, item, familia: familiaSeleccionada };
+  const registro = { ...t, item, familia: familiaSeleccionada, tipo: tipoSeleccionado };
 
   const btn = document.getElementById('btn-guardar-gasto');
   btn.disabled = true;
@@ -382,6 +444,7 @@ async function guardarGasto() {
           banco: t.banco,
           fecha: t.fecha + '\u200B',
           monto: t.monto,
+          tipo: tipoSeleccionado,
           texto: t.textoOriginal
         })
       });
