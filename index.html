@@ -232,6 +232,7 @@ const FAMILIAS = ['Alimentación','Transporte','Salud','Educación','Hogar','Oci
 const TIPOS = ['Personal','Familiar'];
 let transaccionesPendientes = [];
 let transaccionesRegistradas = [];
+let transaccionesDescartadas = [];
 let transaccionActual = null;
 let familiaSeleccionada = '';
 let tipoSeleccionado = '';
@@ -248,6 +249,9 @@ function init() {
 
   const registered = localStorage.getItem('gastos_registrados');
   if (registered) transaccionesRegistradas = JSON.parse(registered);
+
+  const discarded = localStorage.getItem('gastos_descartadas');
+  if (discarded) transaccionesDescartadas = JSON.parse(discarded);
 
   const now = new Date();
   document.getElementById('header-fecha').textContent = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -278,7 +282,8 @@ async function consultarTransaccionNueva() {
       if (!textoOriginal) return;
 
       const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
-                        transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal);
+                        transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal) ||
+                        transaccionesDescartadas.includes(textoOriginal);
       if (yaExiste) return;
 
       recibirTransaccion(textoOriginal);
@@ -579,8 +584,11 @@ function eliminarRegistro() {
 
 function descartarTransaccion(i) {
   if (!confirm('¿Descartar esta transacción sin guardarla?')) return;
+  const t = transaccionesPendientes[i];
+  transaccionesDescartadas.push(t.textoOriginal);
   transaccionesPendientes.splice(i, 1);
   localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
+  localStorage.setItem('gastos_descartadas', JSON.stringify(transaccionesDescartadas));
   renderPendientes();
   showToast('Transacción descartada');
 }
@@ -601,11 +609,13 @@ async function limpiarDataStoreMake() {
 }
 
 function resetearTodo() {
-  if (!confirm('¿Borrar todo el historial de pendientes y registrados? Esto no afecta tu Google Sheets.')) return;
+  if (!confirm('¿Borrar todo el historial de pendientes, registrados y descartados? Esto no afecta tu Google Sheets.')) return;
   transaccionesPendientes = [];
   transaccionesRegistradas = [];
+  transaccionesDescartadas = [];
   localStorage.removeItem('gastos_pendientes');
   localStorage.removeItem('gastos_registrados');
+  localStorage.removeItem('gastos_descartadas');
   renderPendientes();
   renderRegistrados();
   renderResumen();
