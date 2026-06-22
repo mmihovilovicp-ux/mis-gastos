@@ -74,7 +74,8 @@
 <div class="tabs">
   <button class="tab active" onclick="showTab('pendientes')">Pendientes</button>
   <button class="tab" onclick="showTab('registrados')">Registrados</button>
-  <button class="tab" onclick="showTab('resumen')">Resumen</button>
+  <button class="tab" onclick="showTab('personal')">Personal</button>
+  <button class="tab" onclick="showTab('familiar')">Familiar</button>
   <button class="tab" onclick="showTab('config')">Config</button>
 </div>
 
@@ -90,22 +91,10 @@
   <div id="lista-registrados"></div>
 </div>
 
-<div id="tab-resumen" class="section">
+<div id="tab-personal" class="section">
   <div class="stats">
     <div class="stat">
-      <div class="stat-label">Total del mes</div>
-      <div class="stat-value" id="stat-total">$0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Transacciones</div>
-      <div class="stat-value" id="stat-count">0</div>
-    </div>
-  </div>
-
-  <p style="font-size:13px;font-weight:600;color:#888;margin:18px 0 8px;text-transform:uppercase;letter-spacing:0.5px;">💼 Personal</p>
-  <div class="stats">
-    <div class="stat">
-      <div class="stat-label">Total Personal</div>
+      <div class="stat-label">💼 Total Personal</div>
       <div class="stat-value" id="stat-total-personal">$0</div>
     </div>
     <div class="stat">
@@ -114,11 +103,12 @@
     </div>
   </div>
   <div id="lista-resumen-personal"></div>
+</div>
 
-  <p style="font-size:13px;font-weight:600;color:#888;margin:18px 0 8px;text-transform:uppercase;letter-spacing:0.5px;">👨‍👩‍👧 Familiar</p>
+<div id="tab-familiar" class="section">
   <div class="stats">
     <div class="stat">
-      <div class="stat-label">Total Familiar</div>
+      <div class="stat-label">👨‍👩‍👧 Total Familiar</div>
       <div class="stat-value" id="stat-total-familiar">$0</div>
     </div>
     <div class="stat">
@@ -384,10 +374,6 @@ function renderRegistrados() {
 }
 
 function renderResumen() {
-  const total = transaccionesRegistradas.reduce((s, t) => s + t.monto, 0);
-  document.getElementById('stat-total').textContent = '$' + total.toLocaleString('es-CL');
-  document.getElementById('stat-count').textContent = transaccionesRegistradas.length;
-
   renderResumenPorTipo('Personal', 'stat-total-personal', 'stat-count-personal', 'lista-resumen-personal');
   renderResumenPorTipo('Familiar', 'stat-total-familiar', 'stat-count-familiar', 'lista-resumen-familiar');
 }
@@ -657,7 +643,7 @@ function recibirTransaccion(texto, datosManual) {
 
 function showTab(tab) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['pendientes','registrados','resumen','config'];
+    const tabs = ['pendientes','registrados','personal','familiar','config'];
     t.classList.toggle('active', tabs[i] === tab);
   });
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
