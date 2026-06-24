@@ -81,13 +81,13 @@
 
 <div id="tab-pendientes" class="section active">
   <div style="display:flex; gap:8px; margin-bottom:12px;">
-    <button onclick="consultarTransaccionNueva()" style="flex:1;padding:10px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">↻ Buscar nuevas</button>
-    <button onclick="abrirModalManual()" style="flex:1;padding:10px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:13px;cursor:pointer;">+ Agregar manual</button>
+    <button onclick="consultarTransaccionNueva()" style="width:100%;padding:10px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">↻ Buscar transacciones nuevas</button>
   </div>
   <div id="lista-pendientes"></div>
 </div>
 
 <div id="tab-registrados" class="section">
+  <button onclick="abrirModalManual()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:14px;cursor:pointer;">+ Agregar registro manual</button>
   <div id="lista-registrados"></div>
 </div>
 
@@ -167,8 +167,8 @@
 <div class="modal-overlay" id="modal-manual">
   <div class="modal">
     <div class="modal-handle"></div>
-    <h2>Agregar transacción manual</h2>
-    <p class="modal-info">Para cuando no llegó la notificación del banco</p>
+    <h2>Agregar registro manual</h2>
+    <p class="modal-info">Se guardará directo en Registrados y Google Sheets</p>
     <div class="form-group">
       <label class="form-label">Banco</label>
       <input class="form-input" id="manual-banco" placeholder="Santander" value="Santander" />
@@ -178,14 +178,22 @@
       <input class="form-input" id="manual-monto" type="text" inputmode="numeric" placeholder="$ 15.000" oninput="formatearMontoInput(this)" />
     </div>
     <div class="form-group">
-      <label class="form-label">Comercio / Descripción</label>
+      <label class="form-label">Item / Comercio</label>
       <input class="form-input" id="manual-comercio" placeholder="ej: Supermercado Lider" />
     </div>
     <div class="form-group">
       <label class="form-label">Fecha</label>
       <input class="form-input" id="manual-fecha" placeholder="dd-mm-aaaa" />
     </div>
-    <button class="btn-guardar" onclick="guardarManual()">Agregar a pendientes</button>
+    <div class="form-group">
+      <label class="form-label">Familia</label>
+      <div class="familia-grid" id="manual-familia-grid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de gasto</label>
+      <div class="familia-grid" id="manual-tipo-grid"></div>
+    </div>
+    <button class="btn-guardar" id="btn-guardar-manual" onclick="guardarManual()">Guardar en Sheets</button>
     <button class="btn-cancelar" onclick="cerrarModalManual()">Cancelar</button>
   </div>
 </div>
@@ -478,7 +486,12 @@ function montoDesdeInput(id) {
   return raw ? parseInt(raw) : 0;
 }
 
+let manualFamiliaSel = '';
+let manualTipoSel = '';
+
 function abrirModalManual() {
+  manualFamiliaSel = '';
+  manualTipoSel = '';
   document.getElementById('manual-banco').value = 'Santander';
   document.getElementById('manual-monto').value = '';
   document.getElementById('manual-comercio').value = '';
@@ -486,26 +499,88 @@ function abrirModalManual() {
   const dd = String(hoy.getDate()).padStart(2,'0');
   const mm = String(hoy.getMonth()+1).padStart(2,'0');
   document.getElementById('manual-fecha').value = `${dd}-${mm}-${hoy.getFullYear()}`;
+  renderManualFamilias();
+  renderManualTipos();
   document.getElementById('modal-manual').classList.add('open');
+}
+
+function renderManualFamilias() {
+  const grid = document.getElementById('manual-familia-grid');
+  grid.innerHTML = FAMILIAS.map(f => `<button class="familia-btn ${manualFamiliaSel===f?'selected':''}" onclick="selManualFamilia('${f}')">${f}</button>`).join('');
+}
+
+function selManualFamilia(f) {
+  manualFamiliaSel = f;
+  renderManualFamilias();
+}
+
+function renderManualTipos() {
+  const grid = document.getElementById('manual-tipo-grid');
+  grid.innerHTML = TIPOS.map(t => `<button class="familia-btn ${manualTipoSel===t?'selected':''}" onclick="selManualTipo('${t}')">${t}</button>`).join('');
+}
+
+function selManualTipo(t) {
+  manualTipoSel = t;
+  renderManualTipos();
 }
 
 function cerrarModalManual() {
   document.getElementById('modal-manual').classList.remove('open');
 }
 
-function guardarManual() {
+async function guardarManual() {
   const banco = document.getElementById('manual-banco').value.trim() || 'Santander';
   const monto = montoDesdeInput('manual-monto');
-  const comercio = document.getElementById('manual-comercio').value.trim() || 'Transacción manual';
+  const item = document.getElementById('manual-comercio').value.trim() || 'Transacción manual';
   const fecha = document.getElementById('manual-fecha').value.trim();
 
   if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
   if (!fecha) { showToast('Ingresa una fecha', true); return; }
+  if (!manualFamiliaSel) { showToast('Selecciona una familia', true); return; }
+  if (!manualTipoSel) { showToast('Selecciona Personal o Familiar', true); return; }
 
-  const textoOriginal = `Manual: ${comercio} el ${fecha} por $ ${monto} [${Date.now()}]`;
-  recibirTransaccion(textoOriginal, { banco, monto, fecha, comercio });
+  const btn = document.getElementById('btn-guardar-manual');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  const registro = { banco, monto, fecha, comercio: item, item, familia: manualFamiliaSel, tipo: manualTipoSel, textoOriginal: `Manual: ${item} el ${fecha} por $ ${monto} [${Date.now()}]` };
+
+  let envioOk = true;
+  let errorMsg = '';
+  if (config.webhook) {
+    try {
+      const resp = await fetch(config.webhook, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          familia: manualFamiliaSel,
+          item,
+          banco,
+          fecha: fecha + '\u200B',
+          monto,
+          tipo: manualTipoSel,
+          texto: registro.textoOriginal
+        })
+      });
+      if (!resp.ok) { envioOk = false; errorMsg = 'HTTP ' + resp.status; }
+    } catch(e) {
+      envioOk = false;
+      errorMsg = e.message || 'Error de red';
+    }
+  } else {
+    envioOk = false;
+    errorMsg = 'No hay webhook configurado';
+  }
+
+  transaccionesRegistradas.push(registro);
+  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
+
+  btn.disabled = false;
+  btn.textContent = 'Guardar en Sheets';
   cerrarModalManual();
-  showToast('✓ Transacción manual agregada');
+  renderRegistrados();
+  renderResumen();
+  showToast(envioOk ? '\u2713 Registro manual guardado' : '\u26a0 Error: ' + errorMsg, !envioOk);
 }
 
 let editarIdx = null;
