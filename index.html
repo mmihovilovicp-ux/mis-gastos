@@ -59,9 +59,19 @@
   .stat { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px; }
   .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
   .stat-value { font-size: 20px; font-weight: 700; color: #1c1c1e; }
-  .resumen-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; }
+  .resumen-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; cursor: pointer; }
+  .resumen-item:active { background: #f9f9f9; }
   .resumen-familia { font-size: 14px; font-weight: 500; }
   .resumen-monto { font-size: 14px; font-weight: 600; color: #007AFF; }
+  .resumen-chevron { font-size: 12px; color: #aaa; margin-left: 6px; transition: transform 0.2s; }
+  .resumen-chevron.open { transform: rotate(90deg); }
+  .resumen-detalle { display: none; background: #f9f9f9; border-radius: 8px; margin: 4px 0 8px; padding: 0 10px; }
+  .resumen-detalle.open { display: block; }
+  .resumen-detalle-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
+  .resumen-detalle-item:last-child { border-bottom: none; }
+  .resumen-detalle-comercio { color: #444; flex: 1; }
+  .resumen-detalle-fecha { color: #aaa; font-size: 12px; margin: 0 8px; }
+  .resumen-detalle-monto { color: #007AFF; font-weight: 600; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -393,13 +403,43 @@ function renderResumenPorTipo(tipo, idTotal, idCount, idLista) {
 
   const porFamilia = {};
   filtradas.forEach(t => {
-    porFamilia[t.familia] = (porFamilia[t.familia] || 0) + t.monto;
+    if (!porFamilia[t.familia]) porFamilia[t.familia] = { total: 0, items: [] };
+    porFamilia[t.familia].total += t.monto;
+    porFamilia[t.familia].items.push(t);
   });
 
-  const sorted = Object.entries(porFamilia).sort((a,b) => b[1]-a[1]);
-  document.getElementById(idLista).innerHTML = sorted.length === 0
-    ? `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es aún</p></div>`
-    : sorted.map(([f, m]) => `<div class="resumen-item"><span class="resumen-familia">${f}</span><span class="resumen-monto">$${m.toLocaleString('es-CL')}</span></div>`).join('');
+  const sorted = Object.entries(porFamilia).sort((a,b) => b[1].total - a[1].total);
+
+  if (sorted.length === 0) {
+    document.getElementById(idLista).innerHTML = `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es aún</p></div>`;
+    return;
+  }
+
+  document.getElementById(idLista).innerHTML = sorted.map(([f, data], i) => {
+    const detalleId = `detalle-${tipo}-${i}`;
+    const chevronId = `chevron-${tipo}-${i}`;
+    const itemsHtml = [...data.items]
+      .sort((a,b) => b.monto - a.monto)
+      .map(t => `
+        <div class="resumen-detalle-item">
+          <span class="resumen-detalle-comercio">${t.item || t.comercio || '-'}</span>
+          <span class="resumen-detalle-fecha">${t.fecha}</span>
+          <span class="resumen-detalle-monto">$${t.monto.toLocaleString('es-CL')}</span>
+        </div>`).join('');
+    return `
+      <div class="resumen-item" onclick="toggleDetalle('${detalleId}','${chevronId}')">
+        <span class="resumen-familia">${f} <span class="resumen-chevron" id="${chevronId}">▶</span></span>
+        <span class="resumen-monto">$${data.total.toLocaleString('es-CL')}</span>
+      </div>
+      <div class="resumen-detalle" id="${detalleId}">${itemsHtml}</div>`;
+  }).join('');
+}
+
+function toggleDetalle(detalleId, chevronId) {
+  const detalle = document.getElementById(detalleId);
+  const chevron = document.getElementById(chevronId);
+  detalle.classList.toggle('open');
+  chevron.classList.toggle('open');
 }
 
 function abrirModal(i) {
