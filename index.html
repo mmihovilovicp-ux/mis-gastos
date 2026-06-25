@@ -102,9 +102,14 @@
 </div>
 
 <div id="tab-personal" class="section">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <button onclick="cambiarMes(-1,'personal')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8249;</button>
+    <span id="mes-label-personal" style="flex:1;text-align:center;font-size:14px;font-weight:600;color:#1c1c1e;"></span>
+    <button onclick="cambiarMes(1,'personal')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
+  </div>
   <div class="stats">
     <div class="stat">
-      <div class="stat-label">💼 Total Personal</div>
+      <div class="stat-label">&#128188; Total Personal</div>
       <div class="stat-value" id="stat-total-personal">$0</div>
     </div>
     <div class="stat">
@@ -116,9 +121,14 @@
 </div>
 
 <div id="tab-familiar" class="section">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <button onclick="cambiarMes(-1,'familiar')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8249;</button>
+    <span id="mes-label-familiar" style="flex:1;text-align:center;font-size:14px;font-weight:600;color:#1c1c1e;"></span>
+    <button onclick="cambiarMes(1,'familiar')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
+  </div>
   <div class="stats">
     <div class="stat">
-      <div class="stat-label">👨‍👩‍👧 Total Familiar</div>
+      <div class="stat-label">&#128106; Total Familiar</div>
       <div class="stat-value" id="stat-total-familiar">$0</div>
     </div>
     <div class="stat">
@@ -367,14 +377,50 @@ function renderPendientes() {
   `).join('');
 }
 
+// Estado de mes seleccionado para cada pestaña de resumen
+const mesActual = { personal: new Date(), familiar: new Date() };
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function mesLabel(fecha) {
+  return MESES[fecha.getMonth()] + ' ' + fecha.getFullYear();
+}
+
+function cambiarMes(delta, tipo) {
+  const d = mesActual[tipo];
+  mesActual[tipo] = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+  renderResumen();
+}
+
+function parsearFechaRegistro(fechaStr) {
+  // Soporta formato dd-mm-aaaa y texto completo de notificación
+  const match = (fechaStr || '').match(/(\d{2})-(\d{2})-(\d{4})/);
+  if (!match) return null;
+  return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
+}
+
+function filtrarPorMes(lista, mes) {
+  return lista.filter(t => {
+    const d = parsearFechaRegistro(t.fecha);
+    if (!d) return false;
+    return d.getMonth() === mes.getMonth() && d.getFullYear() === mes.getFullYear();
+  });
+}
+
 function renderRegistrados() {
   const el = document.getElementById('lista-registrados');
+  const ahora = new Date();
+  const delMes = filtrarPorMes(transaccionesRegistradas, ahora);
+
   if (transaccionesRegistradas.length === 0) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Aún no hay gastos registrados</p></div>`;
     return;
   }
-  const sorted = [...transaccionesRegistradas].reverse();
-  el.innerHTML = sorted.map((t, i) => {
+  if (delMes.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Sin gastos este mes</p><p style="font-size:13px;color:#aaa;margin-top:8px;">Los registros anteriores se ven en Personal y Familiar</p></div>`;
+    return;
+  }
+  const sorted = [...delMes].reverse();
+  el.innerHTML = sorted.map(t => {
     const realIdx = transaccionesRegistradas.indexOf(t);
     return `
     <div class="card">
@@ -391,12 +437,14 @@ function renderRegistrados() {
 }
 
 function renderResumen() {
-  renderResumenPorTipo('Personal', 'stat-total-personal', 'stat-count-personal', 'lista-resumen-personal');
-  renderResumenPorTipo('Familiar', 'stat-total-familiar', 'stat-count-familiar', 'lista-resumen-familiar');
+  document.getElementById('mes-label-personal').textContent = mesLabel(mesActual.personal);
+  document.getElementById('mes-label-familiar').textContent = mesLabel(mesActual.familiar);
+  renderResumenPorTipo('Personal', 'stat-total-personal', 'stat-count-personal', 'lista-resumen-personal', mesActual.personal);
+  renderResumenPorTipo('Familiar', 'stat-total-familiar', 'stat-count-familiar', 'lista-resumen-familiar', mesActual.familiar);
 }
 
-function renderResumenPorTipo(tipo, idTotal, idCount, idLista) {
-  const filtradas = transaccionesRegistradas.filter(t => t.tipo === tipo);
+function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
+  const filtradas = filtrarPorMes(transaccionesRegistradas.filter(t => t.tipo === tipo), mes);
   const total = filtradas.reduce((s, t) => s + t.monto, 0);
   document.getElementById(idTotal).textContent = '$' + total.toLocaleString('es-CL');
   document.getElementById(idCount).textContent = filtradas.length;
@@ -411,7 +459,7 @@ function renderResumenPorTipo(tipo, idTotal, idCount, idLista) {
   const sorted = Object.entries(porFamilia).sort((a,b) => b[1].total - a[1].total);
 
   if (sorted.length === 0) {
-    document.getElementById(idLista).innerHTML = `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es aún</p></div>`;
+    document.getElementById(idLista).innerHTML = `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es en ${mesLabel(mes)}</p></div>`;
     return;
   }
 
