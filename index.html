@@ -17,7 +17,7 @@
   header h1 { font-size: 20px; font-weight: 600; }
   header p { font-size: 13px; color: #888; margin-top: 2px; }
   .tabs { display: flex; background: #fff; border-bottom: 0.5px solid #e0e0e0; }
-  .tab { flex: 1; padding: 12px; text-align: center; font-size: 14px; font-weight: 500; color: #888; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 500; color: #888; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
   .tab.active { color: #007AFF; border-bottom-color: #007AFF; }
   .section { display: none; padding: 16px; }
   .section.active { display: block; }
@@ -54,7 +54,7 @@
   .config-label { font-size: 13px; color: #888; margin-bottom: 4px; }
   .config-input { width: 100%; border: none; font-size: 15px; outline: none; background: none; }
   .btn-guardar-config { width: 100%; padding: 14px; background: #34C759; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
-  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; display: none; z-index: 200; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; display: none; z-index: 200; white-space: nowrap; }
   .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
   .stat { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px; }
   .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
@@ -77,6 +77,16 @@
   .search-box input:focus { border-color: #007AFF; }
   .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; }
   .search-count { font-size: 12px; color: #888; margin-bottom: 10px; text-align: right; }
+  .demo-banner { background: #fff8e1; border: 0.5px solid #ffcc00; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #7a6000; text-align: center; }
+  .demo-toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px 16px; margin-bottom: 8px; }
+  .demo-toggle-label { font-size: 15px; font-weight: 500; }
+  .demo-toggle-sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .toggle-switch { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 31px; transition: 0.3s; }
+  .toggle-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch input:checked + .toggle-slider { background: #34C759; }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
 </style>
 </head>
 <body>
@@ -91,6 +101,7 @@
   <button class="tab" onclick="showTab('registrados')">Registrados</button>
   <button class="tab" onclick="showTab('personal')">Personal</button>
   <button class="tab" onclick="showTab('familiar')">Familiar</button>
+  <button class="tab" id="tab-gastos-btn" onclick="showTab('gastos')" style="display:none;">Gastos</button>
   <button class="tab" onclick="showTab('config')">Config</button>
 </div>
 
@@ -117,14 +128,8 @@
     <button onclick="cambiarMes(1,'personal')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
   </div>
   <div class="stats">
-    <div class="stat">
-      <div class="stat-label">&#128188; Total Personal</div>
-      <div class="stat-value" id="stat-total-personal">$0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Transacciones</div>
-      <div class="stat-value" id="stat-count-personal">0</div>
-    </div>
+    <div class="stat"><div class="stat-label">&#128188; Total Personal</div><div class="stat-value" id="stat-total-personal">$0</div></div>
+    <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-personal">0</div></div>
   </div>
   <div id="lista-resumen-personal"></div>
 </div>
@@ -136,16 +141,24 @@
     <button onclick="cambiarMes(1,'familiar')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
   </div>
   <div class="stats">
-    <div class="stat">
-      <div class="stat-label">&#128106; Total Familiar</div>
-      <div class="stat-value" id="stat-total-familiar">$0</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Transacciones</div>
-      <div class="stat-value" id="stat-count-familiar">0</div>
-    </div>
+    <div class="stat"><div class="stat-label">&#128106; Total Familiar</div><div class="stat-value" id="stat-total-familiar">$0</div></div>
+    <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-familiar">0</div></div>
   </div>
   <div id="lista-resumen-familiar"></div>
+</div>
+
+<div id="tab-gastos" class="section">
+  <div class="demo-banner">👁 Modo Demo — datos de ejemplo</div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <button onclick="cambiarMesDemo(-1)" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8249;</button>
+    <span id="mes-label-demo" style="flex:1;text-align:center;font-size:14px;font-weight:600;color:#1c1c1e;"></span>
+    <button onclick="cambiarMesDemo(1)" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">💸 Total Gastos</div><div class="stat-value" id="stat-total-demo">$0</div></div>
+    <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-demo">0</div></div>
+  </div>
+  <div id="lista-resumen-demo"></div>
 </div>
 
 <div id="tab-config" class="section">
@@ -158,6 +171,21 @@
     <input class="config-input" id="config-webhook-consulta" placeholder="https://hook.us2.make.com/..." />
   </div>
   <button class="btn-guardar-config" onclick="guardarConfig()">Guardar configuración</button>
+
+  <div style="margin-top:24px;">
+    <p style="font-size:13px;color:#888;margin-bottom:12px;font-weight:500;">Modo Demo</p>
+    <div class="demo-toggle-row">
+      <div>
+        <div class="demo-toggle-label">Pestaña "Gastos"</div>
+        <div class="demo-toggle-sub">Muestra datos de ejemplo para compartir</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggle-demo" onchange="toggleModoDemo(this.checked)" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
   <div style="margin-top: 24px;">
     <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Agregar transacción manual (para pruebas)</p>
     <button onclick="agregarPrueba()" style="width:100%;padding:12px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:14px;cursor:pointer;">+ Agregar transacción de prueba</button>
@@ -263,220 +291,77 @@ let transaccionesDescartadas = [];
 let transaccionActual = null;
 let familiaSeleccionada = '';
 let tipoSeleccionado = '';
-let config = { webhook: '', webhookConsulta: '', webhookRecibir: window.location.href, makeToken: '', makeDataStoreId: '', makeZone: 'us2' };
+let modoDemoActivo = false;
+let config = { webhook: '', webhookConsulta: '' };
 
-function init() {
-  const stored = localStorage.getItem('gastos_config');
-  if (stored) config = { ...config, ...JSON.parse(stored) };
-  document.getElementById('config-webhook').value = config.webhook || '';
-  document.getElementById('config-webhook-consulta').value = config.webhookConsulta || '';
+// ── DATOS DEMO ──────────────────────────────────────────────────────────────
+const DATOS_DEMO = [
+  { item:'Unimarc', familia:'Alimentos', monto:28400, fecha:'03-06-2026', tipo:'Familiar' },
+  { item:'Unimarc', familia:'Alimentos', monto:15900, fecha:'07-06-2026', tipo:'Familiar' },
+  { item:'Unimarc', familia:'Alimentos', monto:22300, fecha:'12-06-2026', tipo:'Familiar' },
+  { item:'Unimarc', familia:'Alimentos', monto:19750, fecha:'17-06-2026', tipo:'Familiar' },
+  { item:'Unimarc', familia:'Alimentos', monto:31200, fecha:'21-06-2026', tipo:'Familiar' },
+  { item:'Panadería', familia:'Alimentos', monto:4800, fecha:'05-06-2026', tipo:'Familiar' },
+  { item:'Panadería', familia:'Alimentos', monto:5200, fecha:'14-06-2026', tipo:'Familiar' },
+  { item:'Feria', familia:'Alimentos', monto:12600, fecha:'08-06-2026', tipo:'Familiar' },
+  { item:'Feria', familia:'Alimentos', monto:9800, fecha:'15-06-2026', tipo:'Familiar' },
+  { item:'Metro', familia:'Transporte', monto:3600, fecha:'02-06-2026', tipo:'Personal' },
+  { item:'Metro', familia:'Transporte', monto:3600, fecha:'09-06-2026', tipo:'Personal' },
+  { item:'Metro', familia:'Transporte', monto:3600, fecha:'16-06-2026', tipo:'Personal' },
+  { item:'Cabify', familia:'Transporte', monto:5900, fecha:'06-06-2026', tipo:'Personal' },
+  { item:'Cabify', familia:'Transporte', monto:7200, fecha:'20-06-2026', tipo:'Personal' },
+  { item:'Farmacia Cruz Verde', familia:'Salud', monto:18400, fecha:'04-06-2026', tipo:'Personal' },
+  { item:'Kinesiólogo', familia:'Salud', monto:25000, fecha:'11-06-2026', tipo:'Personal' },
+  { item:'Netflixx', familia:'Ocio', monto:8490, fecha:'01-06-2026', tipo:'Familiar' },
+  { item:'Spotify', familia:'Ocio', monto:4990, fecha:'01-06-2026', tipo:'Personal' },
+  { item:'Cine', familia:'Ocio', monto:9800, fecha:'13-06-2026', tipo:'Personal' },
+  { item:'Libro', familia:'Educación', monto:14900, fecha:'10-06-2026', tipo:'Personal' },
+  { item:'Detergente', familia:'Gastos Casa', monto:6900, fecha:'03-06-2026', tipo:'Familiar' },
+  { item:'Alistore', familia:'Gastos Casa', monto:4200, fecha:'09-06-2026', tipo:'Familiar' },
+  { item:'Sodimac', familia:'Gastos Casa', monto:21500, fecha:'18-06-2026', tipo:'Familiar' },
+  { item:'GTD Internet', familia:'Cuenta Básica', monto:22129, fecha:'01-06-2026', tipo:'Familiar' },
+  { item:'Agua', familia:'Cuenta Básica', monto:18400, fecha:'01-06-2026', tipo:'Familiar' },
+  { item:'Gas', familia:'Cuenta Básica', monto:31200, fecha:'01-06-2026', tipo:'Familiar' },
+  // Mayo
+  { item:'Unimarc', familia:'Alimentos', monto:24300, fecha:'05-05-2026', tipo:'Familiar' },
+  { item:'Unimarc', familia:'Alimentos', monto:18700, fecha:'12-05-2026', tipo:'Familiar' },
+  { item:'Unimarc', familia:'Alimentos', monto:29100, fecha:'20-05-2026', tipo:'Familiar' },
+  { item:'Feria', familia:'Alimentos', monto:11200, fecha:'08-05-2026', tipo:'Familiar' },
+  { item:'Metro', familia:'Transporte', monto:3600, fecha:'04-05-2026', tipo:'Personal' },
+  { item:'Metro', familia:'Transporte', monto:3600, fecha:'11-05-2026', tipo:'Personal' },
+  { item:'Cabify', familia:'Transporte', monto:6300, fecha:'16-05-2026', tipo:'Personal' },
+  { item:'Farmacia', familia:'Salud', monto:12900, fecha:'07-05-2026', tipo:'Personal' },
+  { item:'Netflixx', familia:'Ocio', monto:8490, fecha:'01-05-2026', tipo:'Familiar' },
+  { item:'Spotify', familia:'Ocio', monto:4990, fecha:'01-05-2026', tipo:'Personal' },
+  { item:'Alistore', familia:'Gastos Casa', monto:8700, fecha:'14-05-2026', tipo:'Familiar' },
+  { item:'GTD Internet', familia:'Cuenta Básica', monto:22129, fecha:'01-05-2026', tipo:'Familiar' },
+  { item:'Agua', familia:'Cuenta Básica', monto:16800, fecha:'01-05-2026', tipo:'Familiar' },
+  { item:'Gas', familia:'Cuenta Básica', monto:28400, fecha:'01-05-2026', tipo:'Familiar' },
+];
 
-  const pending = localStorage.getItem('gastos_pendientes');
-  if (pending) transaccionesPendientes = JSON.parse(pending);
+const mesActualDemo = { fecha: new Date() };
 
-  const registered = localStorage.getItem('gastos_registrados');
-  if (registered) transaccionesRegistradas = JSON.parse(registered);
-
-  const discarded = localStorage.getItem('gastos_descartadas');
-  if (discarded) transaccionesDescartadas = JSON.parse(discarded);
-
-  const now = new Date();
-  document.getElementById('header-fecha').textContent = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
-
-  renderFamilias();
-  renderPendientes();
-  renderRegistrados();
-  renderResumen();
+function cambiarMesDemo(delta) {
+  const d = mesActualDemo.fecha;
+  mesActualDemo.fecha = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+  renderResumenDemo();
 }
 
-async function consultarTransaccionNueva() {
-  if (!config.webhookConsulta) { showToast('⚠ Falta configurar el webhook de consulta', true); return; }
-  try {
-    const resp = await fetch(config.webhookConsulta, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accion: 'consultar' })
-    });
-    if (!resp.ok) { showToast('⚠ Error: ' + resp.status, true); return; }
-    const registros = await resp.json();
-    const lista = Array.isArray(registros) ? registros : [registros];
+function renderResumenDemo() {
+  const mes = mesActualDemo.fecha;
+  document.getElementById('mes-label-demo').textContent = mesLabel(mes);
 
-    let nuevas = 0;
-    lista.forEach(rec => {
-      const data = rec.data || rec;
-      const textoOriginal = data.Fecha || data.fecha || '';
-      if (!textoOriginal) return;
-
-      const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
-                        transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal) ||
-                        transaccionesDescartadas.includes(textoOriginal);
-      if (yaExiste) return;
-
-      recibirTransaccion(textoOriginal);
-      nuevas++;
-    });
-
-    showToast(nuevas > 0 ? `📥 ${nuevas} transacción(es) nueva(s)` : 'No hay transacciones nuevas');
-  } catch(e) {
-    showToast('⚠ Error: ' + e.message, true);
-  }
-}
-
-function renderFamilias() {
-  const grid = document.getElementById('familia-grid');
-  grid.innerHTML = FAMILIAS.map(f => `<button class="familia-btn ${familiaSeleccionada===f?'selected':''}" onclick="selFamilia('${f}')">${f}</button>`).join('');
-}
-
-function selFamilia(f) {
-  familiaSeleccionada = f;
-  renderFamilias();
-}
-
-function renderTipos() {
-  const grid = document.getElementById('tipo-grid');
-  grid.innerHTML = TIPOS.map(t => `<button class="familia-btn ${tipoSeleccionado===t?'selected':''}" onclick="selTipo('${t}')">${t}</button>`).join('');
-}
-
-function selTipo(t) {
-  tipoSeleccionado = t;
-  renderTipos();
-}
-
-function parsearMonto(texto) {
-  const match = texto.match(/\$\s*([\d.,]+)/);
-  if (!match) return 0;
-  return parseInt(match[1].replace(/\./g,'').replace(',',''));
-}
-
-function parsearFecha(texto) {
-  const match = texto.match(/(\d{2}-\d{2}-\d{4})/);
-  return match ? match[1] : new Date().toLocaleDateString('es-CL');
-}
-
-function parsearComercio(texto) {
-  if (texto.startsWith('Manual:')) {
-    const match = texto.match(/Manual: (.+?) el/);
-    return match ? match[1].trim() : 'Transacción manual';
-  }
-  const match = texto.match(/en (.+?) el \d/);
-  if (match) return match[1].trim();
-  const match2 = texto.match(/hacia tu cuenta (\d+)/);
-  if (match2) return 'Transferencia → ' + match2[1];
-  return 'Transacción';
-}
-
-function renderPendientes() {
-  const el = document.getElementById('lista-pendientes');
-  if (transaccionesPendientes.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>No hay transacciones pendientes</p><p style="font-size:13px;margin-top:8px;color:#aaa;">Las nuevas llegadas de Santander aparecerán aquí</p></div>`;
-    return;
-  }
-  el.innerHTML = transaccionesPendientes.map((t, i) => `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-banco">${t.banco}</span>
-        <span class="card-fecha">${t.fecha}</span>
-      </div>
-      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
-      <div class="card-comercio">${t.comercio}</div>
-      <span class="card-pendiente">Pendiente</span>
-      <button class="btn-categorizar" onclick="abrirModal(${i})">Categorizar →</button>
-      <button onclick="descartarTransaccion(${i})" style="width:100%;padding:8px;margin-top:8px;border:none;background:none;color:#ff3b30;font-size:13px;cursor:pointer;">Descartar (no guardar)</button>
-    </div>
-  `).join('');
-}
-
-const mesActual = { personal: new Date(), familiar: new Date() };
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-function mesLabel(fecha) {
-  return MESES[fecha.getMonth()] + ' ' + fecha.getFullYear();
-}
-
-function cambiarMes(delta, tipo) {
-  const d = mesActual[tipo];
-  mesActual[tipo] = new Date(d.getFullYear(), d.getMonth() + delta, 1);
-  renderResumen();
-}
-
-function parsearFechaRegistro(fechaStr) {
-  const match = (fechaStr || '').match(/(\d{2})-(\d{2})-(\d{4})/);
-  if (!match) return null;
-  return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
-}
-
-function filtrarPorMes(lista, mes) {
-  return lista.filter(t => {
+  const filtrados = DATOS_DEMO.filter(t => {
     const d = parsearFechaRegistro(t.fecha);
-    if (!d) return false;
-    return d.getMonth() === mes.getMonth() && d.getFullYear() === mes.getFullYear();
+    return d && d.getMonth() === mes.getMonth() && d.getFullYear() === mes.getFullYear();
   });
-}
 
-function renderRegistrados() {
-  const el = document.getElementById('lista-registrados');
-  const countEl = document.getElementById('search-count');
-  const query = (document.getElementById('buscador-registrados').value || '').toLowerCase().trim();
-
-  if (transaccionesRegistradas.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Aún no hay gastos registrados</p></div>`;
-    countEl.textContent = '';
-    return;
-  }
-
-  // Si hay búsqueda activa, buscar en todos los registros; si no, filtrar por mes actual
-  let base;
-  if (query) {
-    base = transaccionesRegistradas.filter(t =>
-      (t.item || '').toLowerCase().includes(query) ||
-      (t.comercio || '').toLowerCase().includes(query) ||
-      (t.familia || '').toLowerCase().includes(query) ||
-      (t.fecha || '').includes(query)
-    );
-    countEl.textContent = `${base.length} resultado(s) en todo el historial`;
-  } else {
-    const ahora = new Date();
-    base = filtrarPorMes(transaccionesRegistradas, ahora);
-    if (base.length === 0) {
-      el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Sin gastos este mes</p><p style="font-size:13px;color:#aaa;margin-top:8px;">Usa el buscador para ver meses anteriores</p></div>`;
-      countEl.textContent = '';
-      return;
-    }
-    countEl.textContent = '';
-  }
-
-  const sorted = [...base].reverse();
-  el.innerHTML = sorted.map(t => {
-    const realIdx = transaccionesRegistradas.indexOf(t);
-    return `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-banco">${t.banco}</span>
-        <span class="card-fecha">${t.fecha}</span>
-      </div>
-      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
-      <div class="card-comercio">${t.comercio}</div>
-      <span class="card-item-badge">${t.item} · ${t.familia} · ${t.tipo || '-'}</span>
-      <button onclick="editarRegistro(${realIdx})" style="width:100%;padding:8px;margin-top:10px;border:0.5px solid #007AFF;border-radius:8px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">✏️ Editar</button>
-    </div>
-  `}).join('');
-}
-
-function renderResumen() {
-  document.getElementById('mes-label-personal').textContent = mesLabel(mesActual.personal);
-  document.getElementById('mes-label-familiar').textContent = mesLabel(mesActual.familiar);
-  renderResumenPorTipo('Personal', 'stat-total-personal', 'stat-count-personal', 'lista-resumen-personal', mesActual.personal);
-  renderResumenPorTipo('Familiar', 'stat-total-familiar', 'stat-count-familiar', 'lista-resumen-familiar', mesActual.familiar);
-}
-
-function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
-  const filtradas = filtrarPorMes(transaccionesRegistradas.filter(t => t.tipo === tipo), mes);
-  const total = filtradas.reduce((s, t) => s + t.monto, 0);
-  document.getElementById(idTotal).textContent = '$' + total.toLocaleString('es-CL');
-  document.getElementById(idCount).textContent = filtradas.length;
+  const total = filtrados.reduce((s,t) => s + t.monto, 0);
+  document.getElementById('stat-total-demo').textContent = '$' + total.toLocaleString('es-CL');
+  document.getElementById('stat-count-demo').textContent = filtrados.length;
 
   const porFamilia = {};
-  filtradas.forEach(t => {
+  filtrados.forEach(t => {
     if (!porFamilia[t.familia]) porFamilia[t.familia] = { total: 0, items: [] };
     porFamilia[t.familia].total += t.monto;
     porFamilia[t.familia].items.push(t);
@@ -484,22 +369,21 @@ function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
 
   const sorted = Object.entries(porFamilia).sort((a,b) => b[1].total - a[1].total);
 
+  const lista = document.getElementById('lista-resumen-demo');
   if (sorted.length === 0) {
-    document.getElementById(idLista).innerHTML = `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es en ${mesLabel(mes)}</p></div>`;
+    lista.innerHTML = `<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin datos demo en ${mesLabel(mes)}</p></div>`;
     return;
   }
 
-  document.getElementById(idLista).innerHTML = sorted.map(([f, data], i) => {
-    const detalleId = `detalle-${tipo}-${i}`;
-    const chevronId = `chevron-${tipo}-${i}`;
-    const itemsHtml = [...data.items]
-      .sort((a,b) => b.monto - a.monto)
-      .map(t => `
-        <div class="resumen-detalle-item">
-          <span class="resumen-detalle-comercio">${t.item || t.comercio || '-'}</span>
-          <span class="resumen-detalle-fecha">${t.fecha}</span>
-          <span class="resumen-detalle-monto">$${t.monto.toLocaleString('es-CL')}</span>
-        </div>`).join('');
+  lista.innerHTML = sorted.map(([f, data], i) => {
+    const detalleId = `detalle-demo-${i}`;
+    const chevronId = `chevron-demo-${i}`;
+    const itemsHtml = [...data.items].sort((a,b) => b.monto - a.monto).map(t => `
+      <div class="resumen-detalle-item">
+        <span class="resumen-detalle-comercio">${t.item}</span>
+        <span class="resumen-detalle-fecha">${t.fecha}</span>
+        <span class="resumen-detalle-monto">$${t.monto.toLocaleString('es-CL')}</span>
+      </div>`).join('');
     return `
       <div class="resumen-item" onclick="toggleDetalle('${detalleId}','${chevronId}')">
         <span class="resumen-familia">${f} <span class="resumen-chevron" id="${chevronId}">▶</span></span>
@@ -509,347 +393,384 @@ function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
   }).join('');
 }
 
+function toggleModoDemo(activo) {
+  modoDemoActivo = activo;
+  const btn = document.getElementById('tab-gastos-btn');
+  btn.style.display = activo ? '' : 'none';
+  localStorage.setItem('gastos_modo_demo', activo ? '1' : '0');
+  if (activo) {
+    renderResumenDemo();
+    showToast('✓ Pestaña Gastos activada');
+  } else {
+    showToast('Pestaña Gastos desactivada');
+    showTab('config');
+  }
+}
+// ── FIN DATOS DEMO ───────────────────────────────────────────────────────────
+
+function init() {
+  const stored = localStorage.getItem('gastos_config');
+  if (stored) config = { ...config, ...JSON.parse(stored) };
+  document.getElementById('config-webhook').value = config.webhook || '';
+  document.getElementById('config-webhook-consulta').value = config.webhookConsulta || '';
+
+  const pending = localStorage.getItem('gastos_pendientes');
+  if (pending) transaccionesPendientes = JSON.parse(pending);
+  const registered = localStorage.getItem('gastos_registrados');
+  if (registered) transaccionesRegistradas = JSON.parse(registered);
+  const discarded = localStorage.getItem('gastos_descartadas');
+  if (discarded) transaccionesDescartadas = JSON.parse(discarded);
+
+  // Restaurar estado del modo demo
+  const demoGuardado = localStorage.getItem('gastos_modo_demo') === '1';
+  modoDemoActivo = demoGuardado;
+  document.getElementById('toggle-demo').checked = demoGuardado;
+  document.getElementById('tab-gastos-btn').style.display = demoGuardado ? '' : 'none';
+
+  const now = new Date();
+  document.getElementById('header-fecha').textContent = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  renderFamilias();
+  renderPendientes();
+  renderRegistrados();
+  renderResumen();
+  renderResumenDemo();
+}
+
+async function consultarTransaccionNueva() {
+  if (!config.webhookConsulta) { showToast('⚠ Falta configurar el webhook de consulta', true); return; }
+  try {
+    const resp = await fetch(config.webhookConsulta, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({accion:'consultar'}) });
+    if (!resp.ok) { showToast('⚠ Error: ' + resp.status, true); return; }
+    const registros = await resp.json();
+    const lista = Array.isArray(registros) ? registros : [registros];
+    let nuevas = 0;
+    lista.forEach(rec => {
+      const data = rec.data || rec;
+      const textoOriginal = data.Fecha || data.fecha || '';
+      if (!textoOriginal) return;
+      const yaExiste = transaccionesPendientes.some(t => t.textoOriginal === textoOriginal) ||
+                       transaccionesRegistradas.some(t => t.textoOriginal === textoOriginal) ||
+                       transaccionesDescartadas.includes(textoOriginal);
+      if (yaExiste) return;
+      recibirTransaccion(textoOriginal);
+      nuevas++;
+    });
+    showToast(nuevas > 0 ? `📥 ${nuevas} transacción(es) nueva(s)` : 'No hay transacciones nuevas');
+  } catch(e) { showToast('⚠ Error: ' + e.message, true); }
+}
+
+function renderFamilias() {
+  document.getElementById('familia-grid').innerHTML = FAMILIAS.map(f =>
+    `<button class="familia-btn ${familiaSeleccionada===f?'selected':''}" onclick="selFamilia('${f}')">${f}</button>`).join('');
+}
+function selFamilia(f) { familiaSeleccionada = f; renderFamilias(); }
+function renderTipos() {
+  document.getElementById('tipo-grid').innerHTML = TIPOS.map(t =>
+    `<button class="familia-btn ${tipoSeleccionado===t?'selected':''}" onclick="selTipo('${t}')">${t}</button>`).join('');
+}
+function selTipo(t) { tipoSeleccionado = t; renderTipos(); }
+
+function parsearMonto(texto) {
+  const match = texto.match(/\$\s*([\d.,]+)/);
+  if (!match) return 0;
+  return parseInt(match[1].replace(/\./g,'').replace(',',''));
+}
+function parsearFecha(texto) {
+  const match = texto.match(/(\d{2}-\d{2}-\d{4})/);
+  return match ? match[1] : new Date().toLocaleDateString('es-CL');
+}
+function parsearComercio(texto) {
+  if (texto.startsWith('Manual:')) { const m = texto.match(/Manual: (.+?) el/); return m ? m[1].trim() : 'Transacción manual'; }
+  const m = texto.match(/en (.+?) el \d/); if (m) return m[1].trim();
+  const m2 = texto.match(/hacia tu cuenta (\d+)/); if (m2) return 'Transferencia → ' + m2[1];
+  return 'Transacción';
+}
+
+function renderPendientes() {
+  const el = document.getElementById('lista-pendientes');
+  if (transaccionesPendientes.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">✅</div><p>No hay transacciones pendientes</p><p style="font-size:13px;margin-top:8px;color:#aaa;">Las nuevas llegadas de Santander aparecerán aquí</p></div>`;
+    return;
+  }
+  el.innerHTML = transaccionesPendientes.map((t,i) => `
+    <div class="card">
+      <div class="card-header"><span class="card-banco">${t.banco}</span><span class="card-fecha">${t.fecha}</span></div>
+      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
+      <div class="card-comercio">${t.comercio}</div>
+      <span class="card-pendiente">Pendiente</span>
+      <button class="btn-categorizar" onclick="abrirModal(${i})">Categorizar →</button>
+      <button onclick="descartarTransaccion(${i})" style="width:100%;padding:8px;margin-top:8px;border:none;background:none;color:#ff3b30;font-size:13px;cursor:pointer;">Descartar (no guardar)</button>
+    </div>`).join('');
+}
+
+const mesActual = { personal: new Date(), familiar: new Date() };
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function mesLabel(fecha) { return MESES[fecha.getMonth()] + ' ' + fecha.getFullYear(); }
+function cambiarMes(delta, tipo) {
+  const d = mesActual[tipo];
+  mesActual[tipo] = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+  renderResumen();
+}
+function parsearFechaRegistro(fechaStr) {
+  const match = (fechaStr || '').match(/(\d{2})-(\d{2})-(\d{4})/);
+  if (!match) return null;
+  return new Date(parseInt(match[3]), parseInt(match[2])-1, parseInt(match[1]));
+}
+function filtrarPorMes(lista, mes) {
+  return lista.filter(t => { const d = parsearFechaRegistro(t.fecha); return d && d.getMonth()===mes.getMonth() && d.getFullYear()===mes.getFullYear(); });
+}
+
+function renderRegistrados() {
+  const el = document.getElementById('lista-registrados');
+  const countEl = document.getElementById('search-count');
+  const query = (document.getElementById('buscador-registrados').value || '').toLowerCase().trim();
+  if (transaccionesRegistradas.length === 0) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Aún no hay gastos registrados</p></div>`;
+    countEl.textContent = ''; return;
+  }
+  let base;
+  if (query) {
+    base = transaccionesRegistradas.filter(t =>
+      (t.item||'').toLowerCase().includes(query) || (t.comercio||'').toLowerCase().includes(query) ||
+      (t.familia||'').toLowerCase().includes(query) || (t.fecha||'').includes(query));
+    countEl.textContent = `${base.length} resultado(s) en todo el historial`;
+  } else {
+    base = filtrarPorMes(transaccionesRegistradas, new Date());
+    if (base.length === 0) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Sin gastos este mes</p><p style="font-size:13px;color:#aaa;margin-top:8px;">Usa el buscador para ver meses anteriores</p></div>`;
+      countEl.textContent = ''; return;
+    }
+    countEl.textContent = '';
+  }
+  el.innerHTML = [...base].reverse().map(t => {
+    const realIdx = transaccionesRegistradas.indexOf(t);
+    return `<div class="card">
+      <div class="card-header"><span class="card-banco">${t.banco}</span><span class="card-fecha">${t.fecha}</span></div>
+      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
+      <div class="card-comercio">${t.comercio}</div>
+      <span class="card-item-badge">${t.item} · ${t.familia} · ${t.tipo||'-'}</span>
+      <button onclick="editarRegistro(${realIdx})" style="width:100%;padding:8px;margin-top:10px;border:0.5px solid #007AFF;border-radius:8px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">✏️ Editar</button>
+    </div>`;
+  }).join('');
+}
+
+function renderResumen() {
+  document.getElementById('mes-label-personal').textContent = mesLabel(mesActual.personal);
+  document.getElementById('mes-label-familiar').textContent = mesLabel(mesActual.familiar);
+  renderResumenPorTipo('Personal','stat-total-personal','stat-count-personal','lista-resumen-personal',mesActual.personal);
+  renderResumenPorTipo('Familiar','stat-total-familiar','stat-count-familiar','lista-resumen-familiar',mesActual.familiar);
+}
+
+function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
+  const filtradas = filtrarPorMes(transaccionesRegistradas.filter(t => t.tipo===tipo), mes);
+  const total = filtradas.reduce((s,t) => s+t.monto, 0);
+  document.getElementById(idTotal).textContent = '$'+total.toLocaleString('es-CL');
+  document.getElementById(idCount).textContent = filtradas.length;
+  const porFamilia = {};
+  filtradas.forEach(t => { if (!porFamilia[t.familia]) porFamilia[t.familia]={total:0,items:[]}; porFamilia[t.familia].total+=t.monto; porFamilia[t.familia].items.push(t); });
+  const sorted = Object.entries(porFamilia).sort((a,b) => b[1].total-a[1].total);
+  if (sorted.length===0) { document.getElementById(idLista).innerHTML=`<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es en ${mesLabel(mes)}</p></div>`; return; }
+  document.getElementById(idLista).innerHTML = sorted.map(([f,data],i) => {
+    const detalleId=`detalle-${tipo}-${i}`, chevronId=`chevron-${tipo}-${i}`;
+    const itemsHtml = [...data.items].sort((a,b)=>b.monto-a.monto).map(t=>`
+      <div class="resumen-detalle-item">
+        <span class="resumen-detalle-comercio">${t.item||t.comercio||'-'}</span>
+        <span class="resumen-detalle-fecha">${t.fecha}</span>
+        <span class="resumen-detalle-monto">$${t.monto.toLocaleString('es-CL')}</span>
+      </div>`).join('');
+    return `<div class="resumen-item" onclick="toggleDetalle('${detalleId}','${chevronId}')">
+      <span class="resumen-familia">${f} <span class="resumen-chevron" id="${chevronId}">▶</span></span>
+      <span class="resumen-monto">$${data.total.toLocaleString('es-CL')}</span>
+    </div><div class="resumen-detalle" id="${detalleId}">${itemsHtml}</div>`;
+  }).join('');
+}
+
 function toggleDetalle(detalleId, chevronId) {
-  const detalle = document.getElementById(detalleId);
-  const chevron = document.getElementById(chevronId);
-  detalle.classList.toggle('open');
-  chevron.classList.toggle('open');
+  document.getElementById(detalleId).classList.toggle('open');
+  document.getElementById(chevronId).classList.toggle('open');
 }
 
 function abrirModal(i) {
-  transaccionActual = i;
-  familiaSeleccionada = '';
-  tipoSeleccionado = '';
-  const t = transaccionesPendientes[i];
-  document.getElementById('modal-titulo').textContent = '$' + t.monto.toLocaleString('es-CL');
-  document.getElementById('modal-info').textContent = t.comercio + ' · ' + t.fecha;
-  document.getElementById('modal-item').value = '';
-  renderFamilias();
-  renderTipos();
+  transaccionActual=i; familiaSeleccionada=''; tipoSeleccionado='';
+  const t=transaccionesPendientes[i];
+  document.getElementById('modal-titulo').textContent='$'+t.monto.toLocaleString('es-CL');
+  document.getElementById('modal-info').textContent=t.comercio+' · '+t.fecha;
+  document.getElementById('modal-item').value='';
+  renderFamilias(); renderTipos();
   document.getElementById('modal').classList.add('open');
 }
-
-function cerrarModal() {
-  document.getElementById('modal').classList.remove('open');
-  transaccionActual = null;
-}
+function cerrarModal() { document.getElementById('modal').classList.remove('open'); transaccionActual=null; }
 
 async function guardarGasto() {
-  const item = document.getElementById('modal-item').value.trim();
+  const item=document.getElementById('modal-item').value.trim();
   if (!item) { showToast('Escribe el item'); return; }
   if (!familiaSeleccionada) { showToast('Selecciona una familia'); return; }
   if (!tipoSeleccionado) { showToast('Selecciona Personal o Familiar'); return; }
-
-  const t = transaccionesPendientes[transaccionActual];
-  const registro = { ...t, item, familia: familiaSeleccionada, tipo: tipoSeleccionado };
-
-  const btn = document.getElementById('btn-guardar-gasto');
-  btn.disabled = true;
-  btn.textContent = 'Guardando...';
-
-  let envioOk = true;
-  let errorMsg = '';
+  const t=transaccionesPendientes[transaccionActual];
+  const registro={...t,item,familia:familiaSeleccionada,tipo:tipoSeleccionado};
+  const btn=document.getElementById('btn-guardar-gasto');
+  btn.disabled=true; btn.textContent='Guardando...';
+  let envioOk=true, errorMsg='';
   if (config.webhook) {
     try {
-      const resp = await fetch(config.webhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          familia: familiaSeleccionada,
-          item,
-          banco: t.banco,
-          fecha: t.fecha + '\u200B',
-          monto: t.monto,
-          tipo: tipoSeleccionado,
-          texto: t.textoOriginal
-        })
-      });
-      if (!resp.ok) { envioOk = false; errorMsg = 'HTTP ' + resp.status; }
-    } catch(e) {
-      envioOk = false;
-      errorMsg = e.message || 'Error de red';
-    }
-  } else {
-    envioOk = false;
-    errorMsg = 'No hay webhook configurado';
-  }
-
-  transaccionesPendientes.splice(transaccionActual, 1);
+      const resp=await fetch(config.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({familia:familiaSeleccionada,item,banco:t.banco,fecha:t.fecha+'\u200B',monto:t.monto,tipo:tipoSeleccionado,texto:t.textoOriginal})});
+      if (!resp.ok) { envioOk=false; errorMsg='HTTP '+resp.status; }
+    } catch(e) { envioOk=false; errorMsg=e.message||'Error de red'; }
+  } else { envioOk=false; errorMsg='No hay webhook configurado'; }
+  transaccionesPendientes.splice(transaccionActual,1);
   transaccionesRegistradas.push(registro);
-  localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
-  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
-
-  btn.disabled = false;
-  btn.textContent = 'Guardar en Sheets';
-  cerrarModal();
-  renderPendientes();
-  renderRegistrados();
-  renderResumen();
-  showToast(envioOk ? '✓ Gasto registrado y enviado' : '⚠ Error: ' + errorMsg, !envioOk);
+  localStorage.setItem('gastos_pendientes',JSON.stringify(transaccionesPendientes));
+  localStorage.setItem('gastos_registrados',JSON.stringify(transaccionesRegistradas));
+  btn.disabled=false; btn.textContent='Guardar en Sheets';
+  cerrarModal(); renderPendientes(); renderRegistrados(); renderResumen();
+  showToast(envioOk?'✓ Gasto registrado y enviado':'⚠ Error: '+errorMsg,!envioOk);
 }
 
 function formatearMontoInput(input) {
-  let raw = input.value.replace(/\D/g, '');
-  if (!raw) { input.value = ''; return; }
-  input.value = '$ ' + parseInt(raw).toLocaleString('es-CL');
+  let raw=input.value.replace(/\D/g,'');
+  if (!raw) { input.value=''; return; }
+  input.value='$ '+parseInt(raw).toLocaleString('es-CL');
 }
+function montoDesdeInput(id) { const raw=document.getElementById(id).value.replace(/\D/g,''); return raw?parseInt(raw):0; }
 
-function montoDesdeInput(id) {
-  const raw = document.getElementById(id).value.replace(/\D/g, '');
-  return raw ? parseInt(raw) : 0;
-}
-
-let manualFamiliaSel = '';
-let manualTipoSel = '';
-
+let manualFamiliaSel='', manualTipoSel='';
 function abrirModalManual() {
-  manualFamiliaSel = '';
-  manualTipoSel = '';
-  document.getElementById('manual-banco').value = 'Santander';
-  document.getElementById('manual-monto').value = '';
-  document.getElementById('manual-comercio').value = '';
-  const hoy = new Date();
-  const dd = String(hoy.getDate()).padStart(2,'0');
-  const mm = String(hoy.getMonth()+1).padStart(2,'0');
-  document.getElementById('manual-fecha').value = `${dd}-${mm}-${hoy.getFullYear()}`;
-  renderManualFamilias();
-  renderManualTipos();
+  manualFamiliaSel=''; manualTipoSel='';
+  document.getElementById('manual-banco').value='Santander';
+  document.getElementById('manual-monto').value='';
+  document.getElementById('manual-comercio').value='';
+  const hoy=new Date();
+  document.getElementById('manual-fecha').value=`${String(hoy.getDate()).padStart(2,'0')}-${String(hoy.getMonth()+1).padStart(2,'0')}-${hoy.getFullYear()}`;
+  renderManualFamilias(); renderManualTipos();
   document.getElementById('modal-manual').classList.add('open');
 }
-
 function renderManualFamilias() {
-  const grid = document.getElementById('manual-familia-grid');
-  grid.innerHTML = FAMILIAS.map(f => `<button class="familia-btn ${manualFamiliaSel===f?'selected':''}" onclick="selManualFamilia('${f}')">${f}</button>`).join('');
+  document.getElementById('manual-familia-grid').innerHTML=FAMILIAS.map(f=>`<button class="familia-btn ${manualFamiliaSel===f?'selected':''}" onclick="selManualFamilia('${f}')">${f}</button>`).join('');
 }
-
-function selManualFamilia(f) {
-  manualFamiliaSel = f;
-  renderManualFamilias();
-}
-
+function selManualFamilia(f) { manualFamiliaSel=f; renderManualFamilias(); }
 function renderManualTipos() {
-  const grid = document.getElementById('manual-tipo-grid');
-  grid.innerHTML = TIPOS.map(t => `<button class="familia-btn ${manualTipoSel===t?'selected':''}" onclick="selManualTipo('${t}')">${t}</button>`).join('');
+  document.getElementById('manual-tipo-grid').innerHTML=TIPOS.map(t=>`<button class="familia-btn ${manualTipoSel===t?'selected':''}" onclick="selManualTipo('${t}')">${t}</button>`).join('');
 }
-
-function selManualTipo(t) {
-  manualTipoSel = t;
-  renderManualTipos();
-}
-
-function cerrarModalManual() {
-  document.getElementById('modal-manual').classList.remove('open');
-}
+function selManualTipo(t) { manualTipoSel=t; renderManualTipos(); }
+function cerrarModalManual() { document.getElementById('modal-manual').classList.remove('open'); }
 
 async function guardarManual() {
-  const banco = document.getElementById('manual-banco').value.trim() || 'Santander';
-  const monto = montoDesdeInput('manual-monto');
-  const item = document.getElementById('manual-comercio').value.trim() || 'Transacción manual';
-  const fecha = document.getElementById('manual-fecha').value.trim();
-
-  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
-  if (!fecha) { showToast('Ingresa una fecha', true); return; }
-  if (!manualFamiliaSel) { showToast('Selecciona una familia', true); return; }
-  if (!manualTipoSel) { showToast('Selecciona Personal o Familiar', true); return; }
-
-  const btn = document.getElementById('btn-guardar-manual');
-  btn.disabled = true;
-  btn.textContent = 'Guardando...';
-
-  const registro = { banco, monto, fecha, comercio: item, item, familia: manualFamiliaSel, tipo: manualTipoSel, textoOriginal: `Manual: ${item} el ${fecha} por $ ${monto} [${Date.now()}]` };
-
-  let envioOk = true;
-  let errorMsg = '';
+  const banco=document.getElementById('manual-banco').value.trim()||'Santander';
+  const monto=montoDesdeInput('manual-monto');
+  const item=document.getElementById('manual-comercio').value.trim()||'Transacción manual';
+  const fecha=document.getElementById('manual-fecha').value.trim();
+  if (!monto||monto<=0) { showToast('Ingresa un monto válido',true); return; }
+  if (!fecha) { showToast('Ingresa una fecha',true); return; }
+  if (!manualFamiliaSel) { showToast('Selecciona una familia',true); return; }
+  if (!manualTipoSel) { showToast('Selecciona Personal o Familiar',true); return; }
+  const btn=document.getElementById('btn-guardar-manual');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const registro={banco,monto,fecha,comercio:item,item,familia:manualFamiliaSel,tipo:manualTipoSel,textoOriginal:`Manual: ${item} el ${fecha} por $ ${monto} [${Date.now()}]`};
+  let envioOk=true, errorMsg='';
   if (config.webhook) {
     try {
-      const resp = await fetch(config.webhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          familia: manualFamiliaSel,
-          item,
-          banco,
-          fecha: fecha + '\u200B',
-          monto,
-          tipo: manualTipoSel,
-          texto: registro.textoOriginal
-        })
-      });
-      if (!resp.ok) { envioOk = false; errorMsg = 'HTTP ' + resp.status; }
-    } catch(e) {
-      envioOk = false;
-      errorMsg = e.message || 'Error de red';
-    }
-  } else {
-    envioOk = false;
-    errorMsg = 'No hay webhook configurado';
-  }
-
+      const resp=await fetch(config.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({familia:manualFamiliaSel,item,banco,fecha:fecha+'\u200B',monto,tipo:manualTipoSel,texto:registro.textoOriginal})});
+      if (!resp.ok) { envioOk=false; errorMsg='HTTP '+resp.status; }
+    } catch(e) { envioOk=false; errorMsg=e.message||'Error de red'; }
+  } else { envioOk=false; errorMsg='No hay webhook configurado'; }
   transaccionesRegistradas.push(registro);
-  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
-
-  btn.disabled = false;
-  btn.textContent = 'Guardar en Sheets';
-  cerrarModalManual();
-  renderRegistrados();
-  renderResumen();
-  showToast(envioOk ? '\u2713 Registro manual guardado' : '\u26a0 Error: ' + errorMsg, !envioOk);
+  localStorage.setItem('gastos_registrados',JSON.stringify(transaccionesRegistradas));
+  btn.disabled=false; btn.textContent='Guardar en Sheets';
+  cerrarModalManual(); renderRegistrados(); renderResumen();
+  showToast(envioOk?'\u2713 Registro manual guardado':'\u26a0 Error: '+errorMsg,!envioOk);
 }
 
-let editarIdx = null;
-let editarFamiliaSel = '';
-
+let editarIdx=null, editarFamiliaSel='';
 function editarRegistro(i) {
-  editarIdx = i;
-  const t = transaccionesRegistradas[i];
-  editarFamiliaSel = t.familia;
-  document.getElementById('editar-item').value = t.item;
-  document.getElementById('editar-monto').value = '$ ' + t.monto.toLocaleString('es-CL');
-  document.getElementById('editar-comercio').value = t.comercio;
+  editarIdx=i;
+  const t=transaccionesRegistradas[i];
+  editarFamiliaSel=t.familia;
+  document.getElementById('editar-item').value=t.item;
+  document.getElementById('editar-monto').value='$ '+t.monto.toLocaleString('es-CL');
+  document.getElementById('editar-comercio').value=t.comercio;
   renderEditarFamilias();
   document.getElementById('modal-editar').classList.add('open');
 }
-
 function renderEditarFamilias() {
-  const grid = document.getElementById('editar-familia-grid');
-  grid.innerHTML = FAMILIAS.map(f => `<button class="familia-btn ${editarFamiliaSel===f?'selected':''}" onclick="selEditarFamilia('${f}')">${f}</button>`).join('');
+  document.getElementById('editar-familia-grid').innerHTML=FAMILIAS.map(f=>`<button class="familia-btn ${editarFamiliaSel===f?'selected':''}" onclick="selEditarFamilia('${f}')">${f}</button>`).join('');
 }
-
-function selEditarFamilia(f) {
-  editarFamiliaSel = f;
-  renderEditarFamilias();
-}
-
-function cerrarModalEditar() {
-  document.getElementById('modal-editar').classList.remove('open');
-  editarIdx = null;
-}
+function selEditarFamilia(f) { editarFamiliaSel=f; renderEditarFamilias(); }
+function cerrarModalEditar() { document.getElementById('modal-editar').classList.remove('open'); editarIdx=null; }
 
 function guardarEdicion() {
-  if (editarIdx === null) return;
-  const item = document.getElementById('editar-item').value.trim();
-  const monto = montoDesdeInput('editar-monto');
-  const comercio = document.getElementById('editar-comercio').value.trim();
-
-  if (!item) { showToast('El item no puede estar vacío', true); return; }
-  if (!monto || monto <= 0) { showToast('Monto inválido', true); return; }
-
-  transaccionesRegistradas[editarIdx] = {
-    ...transaccionesRegistradas[editarIdx],
-    item, monto, comercio, familia: editarFamiliaSel
-  };
-  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
-  renderRegistrados();
-  renderResumen();
-  cerrarModalEditar();
+  if (editarIdx===null) return;
+  const item=document.getElementById('editar-item').value.trim();
+  const monto=montoDesdeInput('editar-monto');
+  const comercio=document.getElementById('editar-comercio').value.trim();
+  if (!item) { showToast('El item no puede estar vacío',true); return; }
+  if (!monto||monto<=0) { showToast('Monto inválido',true); return; }
+  transaccionesRegistradas[editarIdx]={...transaccionesRegistradas[editarIdx],item,monto,comercio,familia:editarFamiliaSel};
+  localStorage.setItem('gastos_registrados',JSON.stringify(transaccionesRegistradas));
+  renderRegistrados(); renderResumen(); cerrarModalEditar();
   showToast('✓ Cambios guardados (solo en la app)');
 }
-
 function eliminarRegistro() {
-  if (editarIdx === null) return;
+  if (editarIdx===null) return;
   if (!confirm('¿Eliminar este registro de la app? No afecta tu Google Sheets.')) return;
-  transaccionesRegistradas.splice(editarIdx, 1);
-  localStorage.setItem('gastos_registrados', JSON.stringify(transaccionesRegistradas));
-  renderRegistrados();
-  renderResumen();
-  cerrarModalEditar();
+  transaccionesRegistradas.splice(editarIdx,1);
+  localStorage.setItem('gastos_registrados',JSON.stringify(transaccionesRegistradas));
+  renderRegistrados(); renderResumen(); cerrarModalEditar();
   showToast('✓ Registro eliminado de la app');
 }
-
 function descartarTransaccion(i) {
   if (!confirm('¿Descartar esta transacción sin guardarla?')) return;
-  const t = transaccionesPendientes[i];
+  const t=transaccionesPendientes[i];
   transaccionesDescartadas.push(t.textoOriginal);
-  transaccionesPendientes.splice(i, 1);
-  localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
-  localStorage.setItem('gastos_descartadas', JSON.stringify(transaccionesDescartadas));
-  renderPendientes();
-  showToast('Transacción descartada');
+  transaccionesPendientes.splice(i,1);
+  localStorage.setItem('gastos_pendientes',JSON.stringify(transaccionesPendientes));
+  localStorage.setItem('gastos_descartadas',JSON.stringify(transaccionesDescartadas));
+  renderPendientes(); showToast('Transacción descartada');
 }
-
 async function limpiarDataStoreMake() {
-  if (!config.webhookConsulta) { showToast('⚠ Falta configurar el webhook', true); return; }
-  if (!confirm('¿Borrar todos los registros de transacciones guardados en Make? Esto no afecta tu Google Sheets ni el historial de la app.')) return;
+  if (!config.webhookConsulta) { showToast('⚠ Falta configurar el webhook',true); return; }
+  if (!confirm('¿Borrar todos los registros de transacciones guardados en Make?')) return;
   try {
-    const resp = await fetch(config.webhookConsulta, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accion: 'limpiar' })
-    });
-    showToast(resp.ok ? '✓ Registros viejos limpiados en Make' : '⚠ Error: ' + resp.status, !resp.ok);
-  } catch(e) {
-    showToast('⚠ Error: ' + e.message, true);
-  }
+    const resp=await fetch(config.webhookConsulta,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion:'limpiar'})});
+    showToast(resp.ok?'✓ Registros viejos limpiados en Make':'⚠ Error: '+resp.status,!resp.ok);
+  } catch(e) { showToast('⚠ Error: '+e.message,true); }
 }
-
 function resetearTodo() {
-  if (!confirm('¿Borrar todo el historial de pendientes, registrados y descartados? Esto no afecta tu Google Sheets.')) return;
-  transaccionesPendientes = [];
-  transaccionesRegistradas = [];
-  transaccionesDescartadas = [];
-  localStorage.removeItem('gastos_pendientes');
-  localStorage.removeItem('gastos_registrados');
-  localStorage.removeItem('gastos_descartadas');
-  renderPendientes();
-  renderRegistrados();
-  renderResumen();
-  showToast('✓ Historial borrado');
+  if (!confirm('¿Borrar todo el historial de pendientes, registrados y descartados?')) return;
+  transaccionesPendientes=[]; transaccionesRegistradas=[]; transaccionesDescartadas=[];
+  localStorage.removeItem('gastos_pendientes'); localStorage.removeItem('gastos_registrados'); localStorage.removeItem('gastos_descartadas');
+  renderPendientes(); renderRegistrados(); renderResumen(); showToast('✓ Historial borrado');
 }
-
 function guardarConfig() {
-  config.webhook = document.getElementById('config-webhook').value.trim();
-  config.webhookConsulta = document.getElementById('config-webhook-consulta').value.trim();
-  localStorage.setItem('gastos_config', JSON.stringify(config));
+  config.webhook=document.getElementById('config-webhook').value.trim();
+  config.webhookConsulta=document.getElementById('config-webhook-consulta').value.trim();
+  localStorage.setItem('gastos_config',JSON.stringify(config));
   showToast('✓ Configuración guardada');
-  consultarTransaccionNueva();
 }
-
 function agregarPrueba() {
-  const ejemplos = [
-    'SantanderTransacción por $ 15.468. se realizó una compra con tu Tarjeta de Crédito 5652 en AUTO CL ALEMANA LA DEH el 17-06-2026 a las 18:01:15.',
-    'SantanderTransacción por $ 6.462. se realizó una compra con tu Tarjeta de Crédito 2612 en UNIMARC LAS TRANQUERAS el 17-06-2026 a las 20:27:51.',
-    'El 17-06-2026 21:37:58 se realizó una Transferencia hacia tu cuenta 000072803000 por $ 1.000.'
-  ];
-  const texto = ejemplos[Math.floor(Math.random()*ejemplos.length)];
-  recibirTransaccion(texto);
-  showTab('pendientes');
-  showToast('✓ Transacción de prueba agregada');
+  const ejemplos=['SantanderTransacción por $ 15.468. se realizó una compra con tu Tarjeta de Crédito 5652 en AUTO CL ALEMANA LA DEH el 17-06-2026 a las 18:01:15.','SantanderTransacción por $ 6.462. se realizó una compra con tu Tarjeta de Crédito 2612 en UNIMARC LAS TRANQUERAS el 17-06-2026 a las 20:27:51.','El 17-06-2026 21:37:58 se realizó una Transferencia hacia tu cuenta 000072803000 por $ 1.000.'];
+  recibirTransaccion(ejemplos[Math.floor(Math.random()*ejemplos.length)]);
+  showTab('pendientes'); showToast('✓ Transacción de prueba agregada');
 }
-
 function recibirTransaccion(texto, datosManual) {
-  if (datosManual) {
-    transaccionesPendientes.unshift({ ...datosManual, textoOriginal: texto });
-  } else {
-    const monto = parsearMonto(texto);
-    const fecha = parsearFecha(texto);
-    const comercio = parsearComercio(texto);
-    transaccionesPendientes.unshift({ banco: 'Santander', monto, fecha, comercio, textoOriginal: texto });
-  }
-  localStorage.setItem('gastos_pendientes', JSON.stringify(transaccionesPendientes));
+  if (datosManual) { transaccionesPendientes.unshift({...datosManual,textoOriginal:texto}); }
+  else { transaccionesPendientes.unshift({banco:'Santander',monto:parsearMonto(texto),fecha:parsearFecha(texto),comercio:parsearComercio(texto),textoOriginal:texto}); }
+  localStorage.setItem('gastos_pendientes',JSON.stringify(transaccionesPendientes));
   renderPendientes();
 }
-
 function showTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['pendientes','registrados','personal','familiar','config'];
-    t.classList.toggle('active', tabs[i] === tab);
-  });
+  const tabs=['pendientes','registrados','personal','familiar','gastos','config'];
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
 }
-
 function showToast(msg, esError) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.display = 'block';
-  t.style.background = esError ? '#a32d2d' : '#1c1c1e';
-  setTimeout(() => t.style.display = 'none', esError ? 5000 : 2500);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  t.style.background=esError?'#a32d2d':'#1c1c1e';
+  setTimeout(()=>t.style.display='none',esError?5000:2500);
 }
-
-window.addEventListener('message', e => {
-  if (e.data && e.data.tipo === 'transaccion') recibirTransaccion(e.data.texto);
-});
-
+window.addEventListener('message', e => { if (e.data&&e.data.tipo==='transaccion') recibirTransaccion(e.data.texto); });
 init();
 </script>
 </body>
