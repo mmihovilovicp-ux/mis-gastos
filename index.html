@@ -72,6 +72,11 @@
   .resumen-detalle-comercio { color: #444; flex: 1; }
   .resumen-detalle-fecha { color: #aaa; font-size: 12px; margin: 0 8px; }
   .resumen-detalle-monto { color: #007AFF; font-weight: 600; white-space: nowrap; }
+  .search-box { position: relative; margin-bottom: 12px; }
+  .search-box input { width: 100%; padding: 10px 10px 10px 36px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 14px; background: #fff; outline: none; }
+  .search-box input:focus { border-color: #007AFF; }
+  .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+  .search-count { font-size: 12px; color: #888; margin-bottom: 10px; text-align: right; }
 </style>
 </head>
 <body>
@@ -98,6 +103,10 @@
 
 <div id="tab-registrados" class="section">
   <button onclick="abrirModalManual()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:14px;cursor:pointer;">+ Agregar registro manual</button>
+  <div class="search-box">
+    <input type="text" id="buscador-registrados" placeholder="Buscar por item, comercio, familia..." oninput="renderRegistrados()" />
+  </div>
+  <div class="search-count" id="search-count"></div>
   <div id="lista-registrados"></div>
 </div>
 
@@ -246,7 +255,7 @@
 </div>
 
 <script>
-const FAMILIAS = ['Alimentos','Transporte','Salud','Educación','Ropa','Existencias','Deporte','Ocio','Extras','Gastos Casa','Cuenta Básica'];
+const FAMILIAS = ['Alimentos','Transporte','Salud','Educación','Ropa','Existencias','Deporte','Ocio','Extras','Gastos Casa','Cuenta Básica','Arriendo'];
 const TIPOS = ['Personal','Familiar'];
 let transaccionesPendientes = [];
 let transaccionesRegistradas = [];
@@ -377,7 +386,6 @@ function renderPendientes() {
   `).join('');
 }
 
-// Estado de mes seleccionado para cada pestaña de resumen
 const mesActual = { personal: new Date(), familiar: new Date() };
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -392,7 +400,6 @@ function cambiarMes(delta, tipo) {
 }
 
 function parsearFechaRegistro(fechaStr) {
-  // Soporta formato dd-mm-aaaa y texto completo de notificación
   const match = (fechaStr || '').match(/(\d{2})-(\d{2})-(\d{4})/);
   if (!match) return null;
   return new Date(parseInt(match[3]), parseInt(match[2]) - 1, parseInt(match[1]));
@@ -408,18 +415,37 @@ function filtrarPorMes(lista, mes) {
 
 function renderRegistrados() {
   const el = document.getElementById('lista-registrados');
-  const ahora = new Date();
-  const delMes = filtrarPorMes(transaccionesRegistradas, ahora);
+  const countEl = document.getElementById('search-count');
+  const query = (document.getElementById('buscador-registrados').value || '').toLowerCase().trim();
 
   if (transaccionesRegistradas.length === 0) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Aún no hay gastos registrados</p></div>`;
+    countEl.textContent = '';
     return;
   }
-  if (delMes.length === 0) {
-    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Sin gastos este mes</p><p style="font-size:13px;color:#aaa;margin-top:8px;">Los registros anteriores se ven en Personal y Familiar</p></div>`;
-    return;
+
+  // Si hay búsqueda activa, buscar en todos los registros; si no, filtrar por mes actual
+  let base;
+  if (query) {
+    base = transaccionesRegistradas.filter(t =>
+      (t.item || '').toLowerCase().includes(query) ||
+      (t.comercio || '').toLowerCase().includes(query) ||
+      (t.familia || '').toLowerCase().includes(query) ||
+      (t.fecha || '').includes(query)
+    );
+    countEl.textContent = `${base.length} resultado(s) en todo el historial`;
+  } else {
+    const ahora = new Date();
+    base = filtrarPorMes(transaccionesRegistradas, ahora);
+    if (base.length === 0) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><p>Sin gastos este mes</p><p style="font-size:13px;color:#aaa;margin-top:8px;">Usa el buscador para ver meses anteriores</p></div>`;
+      countEl.textContent = '';
+      return;
+    }
+    countEl.textContent = '';
   }
-  const sorted = [...delMes].reverse();
+
+  const sorted = [...base].reverse();
   el.innerHTML = sorted.map(t => {
     const realIdx = transaccionesRegistradas.indexOf(t);
     return `
