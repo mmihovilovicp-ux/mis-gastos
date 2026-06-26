@@ -99,8 +99,8 @@
 <div class="tabs">
   <button class="tab active" onclick="showTab('pendientes')">Pendientes</button>
   <button class="tab" onclick="showTab('registrados')">Registrados</button>
-  <button class="tab" onclick="showTab('personal')">Personal</button>
-  <button class="tab" onclick="showTab('familiar')">Familiar</button>
+  <button class="tab" id="tab-personal-btn" onclick="showTab('personal')">Personal</button>
+  <button class="tab" id="tab-familiar-btn" onclick="showTab('familiar')">Familiar</button>
   <button class="tab" id="tab-gastos-btn" onclick="showTab('gastos')" style="display:none;">Gastos</button>
   <button class="tab" onclick="showTab('config')">Config</button>
 </div>
@@ -395,15 +395,17 @@ function renderResumenDemo() {
 
 function toggleModoDemo(activo) {
   modoDemoActivo = activo;
-  const btn = document.getElementById('tab-gastos-btn');
-  btn.style.display = activo ? '' : 'none';
+  document.getElementById('tab-gastos-btn').style.display = activo ? '' : 'none';
+  document.getElementById('tab-personal-btn').style.display = activo ? 'none' : '';
+  document.getElementById('tab-familiar-btn').style.display = activo ? 'none' : '';
   localStorage.setItem('gastos_modo_demo', activo ? '1' : '0');
   if (activo) {
     renderResumenDemo();
-    showToast('✓ Pestaña Gastos activada');
+    showTab('gastos');
+    showToast('✓ Modo Demo activado');
   } else {
-    showToast('Pestaña Gastos desactivada');
-    showTab('config');
+    showTab('personal');
+    showToast('Modo Demo desactivado');
   }
 }
 // ── FIN DATOS DEMO ───────────────────────────────────────────────────────────
@@ -426,6 +428,8 @@ function init() {
   modoDemoActivo = demoGuardado;
   document.getElementById('toggle-demo').checked = demoGuardado;
   document.getElementById('tab-gastos-btn').style.display = demoGuardado ? '' : 'none';
+  document.getElementById('tab-personal-btn').style.display = demoGuardado ? 'none' : '';
+  document.getElementById('tab-familiar-btn').style.display = demoGuardado ? 'none' : '';
 
   const now = new Date();
   document.getElementById('header-fecha').textContent = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
