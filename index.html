@@ -565,8 +565,13 @@ function renderRegistrados() {
 
 function renderUltimos(tipo, idEl, mes) {
   const ultimos = filtrarPorMes(transaccionesRegistradas.filter(t => t.tipo === tipo), mes)
-    .slice(-3)
-    .reverse();
+    .slice()
+    .sort((a, b) => {
+      const da = parsearFechaRegistro(a.fecha);
+      const db = parsearFechaRegistro(b.fecha);
+      return db - da;
+    })
+    .slice(0, 3);
   const el = document.getElementById(idEl);
   if (ultimos.length === 0) { el.innerHTML = ''; return; }
   el.innerHTML = ultimos.map(t => `
