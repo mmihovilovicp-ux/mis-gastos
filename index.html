@@ -11,82 +11,105 @@
 <link rel="manifest" href="manifest.json">
 <title>Mis Gastos</title>
 <style>
+  :root {
+    --azul: #1A56DB;
+    --azul-claro: #EEF3FD;
+    --dark: #0B1628;
+    --gris-bg: #F0F2F5;
+    --gris-card: #fff;
+    --gris-borde: #E4E9F0;
+    --gris-texto: #8896AA;
+    --gris-linea: #EDF0F5;
+    --texto: #0B1628;
+    --texto-sec: #3D4E6B;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #1c1c1e; min-height: 100vh; }
-  header { background: #fff; border-bottom: 0.5px solid #e0e0e0; padding: 16px 20px; position: sticky; top: 0; z-index: 10; }
-  header h1 { font-size: 20px; font-weight: 600; }
-  header p { font-size: 13px; color: #888; margin-top: 2px; }
-  .tabs { display: flex; background: #fff; border-bottom: 0.5px solid #e0e0e0; }
-  .tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 500; color: #888; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-  .tab.active { color: #007AFF; border-bottom-color: #007AFF; }
-  .section { display: none; padding: 16px; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gris-bg); color: var(--texto); min-height: 100vh; }
+  header { background: var(--dark); padding: 16px 20px 14px; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 18px; font-weight: 500; color: #fff; letter-spacing: -0.3px; }
+  header p { font-size: 12px; color: #6B7FA8; margin-top: 2px; }
+  .tabs { display: flex; background: var(--dark); padding: 0 12px 10px; gap: 4px; position: sticky; top: 52px; z-index: 10; }
+  .tab { flex: 1; padding: 8px 4px; text-align: center; font-size: 12px; font-weight: 500; color: #6B7FA8; border: none; background: none; cursor: pointer; border-radius: 8px; transition: all 0.15s; }
+  .tab.active { background: rgba(255,255,255,0.12); color: #fff; }
+  .section { display: none; padding: 12px 14px 24px; }
   .section.active { display: block; }
-  .card { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 16px; margin-bottom: 12px; }
-  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-  .card-banco { font-size: 12px; font-weight: 600; color: #007AFF; text-transform: uppercase; letter-spacing: 0.5px; }
-  .card-fecha { font-size: 12px; color: #888; }
-  .card-monto { font-size: 22px; font-weight: 700; color: #1c1c1e; margin-bottom: 4px; }
-  .card-comercio { font-size: 13px; color: #555; margin-bottom: 12px; }
-  .card-item-badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
-  .card-pendiente { display: inline-block; background: #fff3e0; color: #e65100; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
-  .btn-categorizar { width: 100%; padding: 10px; background: #007AFF; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 10px; }
-  .btn-categorizar:active { background: #0056CC; }
-  .empty { text-align: center; padding: 60px 20px; color: #888; }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty p { font-size: 15px; }
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: flex-end; }
+  .card { background: var(--gris-card); border-radius: 14px; border: 0.5px solid var(--gris-borde); padding: 14px 16px; margin-bottom: 8px; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .card-banco { font-size: 11px; font-weight: 600; color: var(--azul); text-transform: uppercase; letter-spacing: 0.8px; }
+  .card-fecha { font-size: 11px; color: var(--gris-texto); }
+  .card-monto { font-size: 22px; font-weight: 600; color: var(--texto); margin-bottom: 4px; letter-spacing: -0.5px; }
+  .card-comercio { font-size: 13px; color: var(--texto-sec); margin-bottom: 10px; }
+  .card-item-badge { display: inline-block; background: var(--azul-claro); color: var(--azul); font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .card-pendiente { display: inline-block; background: #FFF3E0; color: #B45309; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; }
+  .btn-categorizar { width: 100%; padding: 11px; background: var(--azul); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; margin-top: 10px; }
+  .empty { text-align: center; padding: 50px 20px; color: var(--gris-texto); }
+  .empty-icon { font-size: 40px; margin-bottom: 10px; }
+  .empty p { font-size: 14px; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(11,22,40,0.6); z-index: 100; align-items: flex-end; }
   .modal-overlay.open { display: flex; }
-  .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 80vh; overflow-y: auto; }
-  .modal-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 16px; }
-  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
-  .modal-info { font-size: 13px; color: #888; margin-bottom: 20px; }
-  .form-group { margin-bottom: 16px; }
-  .form-label { font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; display: block; }
-  .form-input { width: 100%; padding: 12px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 16px; background: #f9f9f9; outline: none; }
-  .form-input:focus { border-color: #007AFF; background: #fff; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; padding: 20px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .modal-handle { width: 36px; height: 4px; background: var(--gris-borde); border-radius: 2px; margin: 0 auto 16px; }
+  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; color: var(--texto); }
+  .modal-info { font-size: 13px; color: var(--gris-texto); margin-bottom: 18px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; padding: 12px 14px; border: 0.5px solid var(--gris-borde); border-radius: 10px; font-size: 15px; background: var(--gris-bg); outline: none; color: var(--texto); }
+  .form-input:focus { border-color: var(--azul); background: #fff; }
   .familia-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 6px; }
-  .familia-btn { padding: 10px; border: 0.5px solid #ddd; border-radius: 10px; background: #f9f9f9; font-size: 13px; cursor: pointer; text-align: center; }
-  .familia-btn.selected { border-color: #007AFF; background: #e8f0fe; color: #007AFF; font-weight: 500; }
-  .btn-guardar { width: 100%; padding: 14px; background: #007AFF; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-  .btn-guardar:disabled { background: #ccc; }
-  .btn-cancelar { width: 100%; padding: 12px; background: none; color: #888; border: none; font-size: 15px; cursor: pointer; margin-top: 8px; }
-  .config-row { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px 16px; margin-bottom: 8px; }
-  .config-label { font-size: 13px; color: #888; margin-bottom: 4px; }
-  .config-input { width: 100%; border: none; font-size: 15px; outline: none; background: none; }
-  .btn-guardar-config { width: 100%; padding: 14px; background: #34C759; color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
-  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1c1c1e; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; display: none; z-index: 200; white-space: nowrap; }
-  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-  .stat { background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px; }
-  .stat-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-  .stat-value { font-size: 20px; font-weight: 700; color: #1c1c1e; }
-  .resumen-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid #f0f0f0; cursor: pointer; }
-  .resumen-item:active { background: #f9f9f9; }
-  .resumen-familia { font-size: 14px; font-weight: 500; }
-  .resumen-monto { font-size: 14px; font-weight: 600; color: #007AFF; }
-  .resumen-chevron { font-size: 12px; color: #aaa; margin-left: 6px; transition: transform 0.2s; }
+  .familia-btn { padding: 10px; border: 0.5px solid var(--gris-borde); border-radius: 10px; background: var(--gris-bg); font-size: 13px; cursor: pointer; text-align: center; color: var(--texto-sec); }
+  .familia-btn.selected { border-color: var(--azul); background: var(--azul-claro); color: var(--azul); font-weight: 500; }
+  .btn-guardar { width: 100%; padding: 14px; background: var(--azul); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .btn-guardar:disabled { background: var(--gris-borde); color: var(--gris-texto); }
+  .btn-cancelar { width: 100%; padding: 12px; background: none; color: var(--gris-texto); border: none; font-size: 14px; cursor: pointer; margin-top: 6px; }
+  .config-row { background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); padding: 12px 16px; margin-bottom: 8px; }
+  .config-label { font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+  .config-input { width: 100%; border: none; font-size: 14px; outline: none; background: none; color: var(--texto); }
+  .btn-guardar-config { width: 100%; padding: 14px; background: #059669; color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+  .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; display: none; z-index: 200; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .stat { background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); padding: 14px; }
+  .stat-label { font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 600; color: var(--texto); letter-spacing: -0.5px; }
+  .mes-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .mes-nav-btn { padding: 8px 14px; border: 0.5px solid var(--gris-borde); border-radius: 8px; background: var(--gris-card); font-size: 16px; cursor: pointer; color: var(--texto); }
+  .mes-nav-label { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: var(--texto); }
+  .subtabs-bar { display: flex; background: var(--gris-card); border-radius: 12px; padding: 4px; margin-bottom: 12px; gap: 4px; }
+  .subtab-btn { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 500; color: var(--gris-texto); border: none; background: none; border-radius: 9px; cursor: pointer; transition: all 0.15s; }
+  .subtab-btn.active { background: var(--dark); color: #fff; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 0.8px; margin: 14px 0 8px; }
+  .resumen-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); margin-bottom: 4px; cursor: pointer; }
+  .resumen-familia { font-size: 14px; font-weight: 500; color: var(--texto); display: flex; align-items: center; gap: 8px; }
+  .familia-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .resumen-monto { font-size: 14px; font-weight: 600; color: var(--azul); display: flex; align-items: center; gap: 6px; }
+  .resumen-chevron { font-size: 10px; color: var(--gris-texto); transition: transform 0.2s; }
   .resumen-chevron.open { transform: rotate(90deg); }
-  .resumen-detalle { display: none; background: #f9f9f9; border-radius: 8px; margin: 4px 0 8px; padding: 0 10px; }
+  .resumen-detalle { display: none; background: var(--gris-bg); border-radius: 0 0 12px 12px; margin-top: -4px; margin-bottom: 4px; padding: 0 16px; border: 0.5px solid var(--gris-borde); border-top: none; }
   .resumen-detalle.open { display: block; }
-  .resumen-detalle-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
+  .resumen-detalle-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--gris-linea); font-size: 13px; }
   .resumen-detalle-item:last-child { border-bottom: none; }
-  .resumen-detalle-comercio { color: #444; flex: 1; }
-  .resumen-detalle-fecha { color: #aaa; font-size: 12px; margin: 0 8px; }
-  .resumen-detalle-monto { color: #007AFF; font-weight: 600; white-space: nowrap; }
-  .search-box { position: relative; margin-bottom: 12px; }
-  .search-box input { width: 100%; padding: 10px 10px 10px 36px; border: 0.5px solid #ddd; border-radius: 10px; font-size: 14px; background: #fff; outline: none; }
-  .search-box input:focus { border-color: #007AFF; }
-  .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; }
-  .search-count { font-size: 12px; color: #888; margin-bottom: 10px; text-align: right; }
-  .demo-banner { background: #fff8e1; border: 0.5px solid #ffcc00; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #7a6000; text-align: center; }
-  .demo-toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 12px; border: 0.5px solid #e0e0e0; padding: 14px 16px; margin-bottom: 8px; }
-  .demo-toggle-label { font-size: 15px; font-weight: 500; }
-  .demo-toggle-sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .resumen-detalle-comercio { color: var(--texto-sec); flex: 1; }
+  .resumen-detalle-fecha { color: var(--gris-texto); font-size: 11px; margin: 0 10px; }
+  .resumen-detalle-monto { color: var(--azul); font-weight: 600; white-space: nowrap; }
+  .ultimos-item { background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); padding: 12px 16px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+  .ultimos-nombre { font-size: 13px; font-weight: 500; color: var(--texto); }
+  .ultimos-fecha { font-size: 11px; color: var(--gris-texto); margin-top: 2px; }
+  .ultimos-monto { font-size: 15px; font-weight: 600; color: var(--texto); letter-spacing: -0.3px; }
+  .search-box { position: relative; margin-bottom: 10px; }
+  .search-box input { width: 100%; padding: 10px 10px 10px 36px; border: 0.5px solid var(--gris-borde); border-radius: 10px; font-size: 14px; background: var(--gris-card); outline: none; color: var(--texto); }
+  .search-box input:focus { border-color: var(--azul); }
+  .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+  .search-count { font-size: 11px; color: var(--gris-texto); margin-bottom: 8px; text-align: right; }
+  .demo-banner { background: #FFFBEB; border: 0.5px solid #FCD34D; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #92400E; text-align: center; }
+  .demo-toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); padding: 14px 16px; margin-bottom: 8px; }
+  .demo-toggle-label { font-size: 15px; font-weight: 500; color: var(--texto); }
+  .demo-toggle-sub { font-size: 12px; color: var(--gris-texto); margin-top: 2px; }
   .toggle-switch { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
   .toggle-switch input { opacity: 0; width: 0; height: 0; }
-  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 31px; transition: 0.3s; }
-  .toggle-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-  .toggle-switch input:checked + .toggle-slider { background: #34C759; }
+  .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--gris-borde); border-radius: 31px; transition: 0.3s; }
+  .toggle-slider:before { position: absolute; content: ""; height: 27px; width: 27px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .toggle-switch input:checked + .toggle-slider { background: #059669; }
   .toggle-switch input:checked + .toggle-slider:before { transform: translateX(20px); }
+  .danger-btn { width: 100%; padding: 12px; border-radius: 10px; background: none; font-size: 14px; cursor: pointer; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -107,13 +130,13 @@
 
 <div id="tab-pendientes" class="section active">
   <div style="display:flex; gap:8px; margin-bottom:12px;">
-    <button onclick="consultarTransaccionNueva()" style="width:100%;padding:10px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">↻ Buscar transacciones nuevas</button>
+    <button onclick="consultarTransaccionNueva()" style="width:100%;padding:11px;border:0.5px solid #1A56DB;border-radius:10px;background:none;color:#1A56DB;font-size:13px;font-weight:500;cursor:pointer;">↻ Buscar transacciones nuevas</button>
   </div>
   <div id="lista-pendientes"></div>
 </div>
 
 <div id="tab-registrados" class="section">
-  <button onclick="abrirModalManual()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:14px;cursor:pointer;">+ Agregar registro manual</button>
+  <button onclick="abrirModalManual()" style="width:100%;padding:11px;margin-bottom:12px;border:0.5px solid #059669;border-radius:10px;background:none;color:#059669;font-size:14px;font-weight:500;cursor:pointer;">+ Agregar registro manual</button>
   <div class="search-box">
     <input type="text" id="buscador-registrados" placeholder="Buscar por item, comercio, familia..." oninput="renderRegistrados()" />
   </div>
@@ -122,14 +145,14 @@
 </div>
 
 <div id="tab-personal" class="section">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-    <button onclick="cambiarMes(-1,'personal')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8249;</button>
-    <span id="mes-label-personal" style="flex:1;text-align:center;font-size:14px;font-weight:600;color:#1c1c1e;"></span>
-    <button onclick="cambiarMes(1,'personal')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
+  <div class="mes-nav">
+    <button onclick="cambiarMes(-1,'personal')" class="mes-nav-btn">&#8249;</button>
+    <span id="mes-label-personal" class="mes-nav-label"></span>
+    <button onclick="cambiarMes(1,'personal')" class="mes-nav-btn">&#8250;</button>
   </div>
-  <div style="display:flex;border-bottom:0.5px solid #e0e0e0;margin-bottom:14px;">
-    <button id="subtab-personal-resumen-btn" onclick="showSubTab('personal','resumen')" style="flex:1;padding:10px;font-size:14px;font-weight:500;color:#007AFF;border:none;background:none;cursor:pointer;border-bottom:2px solid #007AFF;">Resumen</button>
-    <button id="subtab-personal-registros-btn" onclick="showSubTab('personal','registros')" style="flex:1;padding:10px;font-size:14px;font-weight:500;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;">Registros</button>
+  <div class="subtabs-bar">
+    <button id="subtab-personal-resumen-btn" class="subtab-btn active" onclick="showSubTab('personal','resumen')">Resumen</button>
+    <button id="subtab-personal-registros-btn" class="subtab-btn" onclick="showSubTab('personal','registros')">Registros</button>
   </div>
   <div id="subtab-personal-resumen">
     <div class="stats">
@@ -137,11 +160,11 @@
       <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-personal">0</div></div>
     </div>
     <div id="lista-resumen-personal"></div>
-    <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px;">Últimos registros</p>
+    <p class="section-label">Últimos registros</p>
     <div id="ultimos-personal"></div>
   </div>
   <div id="subtab-personal-registros" style="display:none;">
-    <button onclick="abrirModalManual()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:14px;cursor:pointer;">+ Agregar registro manual</button>
+    <button onclick="abrirModalManual()" style="width:100%;padding:11px;margin-bottom:12px;border:0.5px solid #059669;border-radius:10px;background:none;color:#059669;font-size:14px;font-weight:500;cursor:pointer;">+ Agregar registro manual</button>
     <div class="search-box">
       <input type="text" id="buscador-personal" placeholder="Buscar..." oninput="renderRegistradosPorTipo('Personal','lista-registros-personal','buscador-personal','count-personal')" />
     </div>
@@ -151,14 +174,14 @@
 </div>
 
 <div id="tab-familiar" class="section">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-    <button onclick="cambiarMes(-1,'familiar')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8249;</button>
-    <span id="mes-label-familiar" style="flex:1;text-align:center;font-size:14px;font-weight:600;color:#1c1c1e;"></span>
-    <button onclick="cambiarMes(1,'familiar')" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
+  <div class="mes-nav">
+    <button onclick="cambiarMes(-1,'familiar')" class="mes-nav-btn">&#8249;</button>
+    <span id="mes-label-familiar" class="mes-nav-label"></span>
+    <button onclick="cambiarMes(1,'familiar')" class="mes-nav-btn">&#8250;</button>
   </div>
-  <div style="display:flex;border-bottom:0.5px solid #e0e0e0;margin-bottom:14px;">
-    <button id="subtab-familiar-resumen-btn" onclick="showSubTab('familiar','resumen')" style="flex:1;padding:10px;font-size:14px;font-weight:500;color:#007AFF;border:none;background:none;cursor:pointer;border-bottom:2px solid #007AFF;">Resumen</button>
-    <button id="subtab-familiar-registros-btn" onclick="showSubTab('familiar','registros')" style="flex:1;padding:10px;font-size:14px;font-weight:500;color:#888;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;">Registros</button>
+  <div class="subtabs-bar">
+    <button id="subtab-familiar-resumen-btn" class="subtab-btn active" onclick="showSubTab('familiar','resumen')">Resumen</button>
+    <button id="subtab-familiar-registros-btn" class="subtab-btn" onclick="showSubTab('familiar','registros')">Registros</button>
   </div>
   <div id="subtab-familiar-resumen">
     <div class="stats">
@@ -166,11 +189,11 @@
       <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-familiar">0</div></div>
     </div>
     <div id="lista-resumen-familiar"></div>
-    <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px;">Últimos registros</p>
+    <p class="section-label">Últimos registros</p>
     <div id="ultimos-familiar"></div>
   </div>
   <div id="subtab-familiar-registros" style="display:none;">
-    <button onclick="abrirModalManual()" style="width:100%;padding:10px;margin-bottom:12px;border:0.5px solid #34C759;border-radius:10px;background:none;color:#34C759;font-size:14px;cursor:pointer;">+ Agregar registro manual</button>
+    <button onclick="abrirModalManual()" style="width:100%;padding:11px;margin-bottom:12px;border:0.5px solid #059669;border-radius:10px;background:none;color:#059669;font-size:14px;font-weight:500;cursor:pointer;">+ Agregar registro manual</button>
     <div class="search-box">
       <input type="text" id="buscador-familiar" placeholder="Buscar..." oninput="renderRegistradosPorTipo('Familiar','lista-registros-familiar','buscador-familiar','count-familiar')" />
     </div>
@@ -181,7 +204,7 @@
 
 <div id="tab-gastos" class="section">
   <div class="demo-banner">👁 Modo Demo — datos de ejemplo</div>
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+  <div class="mes-nav">
     <button onclick="cambiarMesDemo(-1)" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8249;</button>
     <span id="mes-label-demo" style="flex:1;text-align:center;font-size:14px;font-weight:600;color:#1c1c1e;"></span>
     <button onclick="cambiarMesDemo(1)" style="padding:8px 14px;border:0.5px solid #ddd;border-radius:8px;background:#fff;font-size:16px;cursor:pointer;">&#8250;</button>
@@ -220,12 +243,12 @@
 
   <div style="margin-top: 24px;">
     <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Agregar transacción manual (para pruebas)</p>
-    <button onclick="agregarPrueba()" style="width:100%;padding:12px;border:0.5px solid #007AFF;border-radius:10px;background:none;color:#007AFF;font-size:14px;cursor:pointer;">+ Agregar transacción de prueba</button>
+    <button onclick="agregarPrueba()" style="width:100%;padding:12px;border:0.5px solid #1A56DB;border-radius:10px;background:none;color:#1A56DB;font-size:14px;cursor:pointer;">+ Agregar transacción de prueba</button>
   </div>
   <div style="margin-top: 24px;">
     <p style="font-size: 13px; color: #888; margin-bottom: 12px; font-weight: 500;">Zona de peligro</p>
-    <button onclick="limpiarDataStoreMake()" style="width:100%;padding:12px;border:0.5px solid #ff9500;border-radius:10px;background:none;color:#ff9500;font-size:14px;cursor:pointer;margin-bottom:10px;">🧹 Limpiar registros viejos en Make</button>
-    <button onclick="resetearTodo()" style="width:100%;padding:12px;border:0.5px solid #ff3b30;border-radius:10px;background:none;color:#ff3b30;font-size:14px;cursor:pointer;">🗑 Borrar todo el historial de la app</button>
+    <button onclick="limpiarDataStoreMake()" class="danger-btn" style="border:0.5px solid #D97706;color:#D97706;">🧹 Limpiar registros viejos en Make</button>
+    <button onclick="resetearTodo()" class="danger-btn" style="border:0.5px solid #DC2626;color:#DC2626;">🗑 Borrar todo el historial de la app</button>
   </div>
 </div>
 
@@ -450,10 +473,8 @@ function showSubTab(tipo, sub) {
   const isResumen = sub === 'resumen';
   resumenEl.style.display = isResumen ? '' : 'none';
   registrosEl.style.display = isResumen ? 'none' : '';
-  resumenBtn.style.color = isResumen ? '#007AFF' : '#888';
-  resumenBtn.style.borderBottom = isResumen ? '2px solid #007AFF' : '2px solid transparent';
-  registrosBtn.style.color = isResumen ? '#888' : '#007AFF';
-  registrosBtn.style.borderBottom = isResumen ? '2px solid transparent' : '2px solid #007AFF';
+  resumenBtn.className = isResumen ? 'subtab-btn active' : 'subtab-btn';
+  registrosBtn.className = isResumen ? 'subtab-btn' : 'subtab-btn active';
   if (!isResumen) {
     const tipoLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1);
     const mes = mesActual[tipo];
@@ -669,6 +690,7 @@ function renderResumen() {
   renderResumenPorTipo('Familiar','stat-total-familiar','stat-count-familiar','lista-resumen-familiar',mesActual.familiar);
 }
 
+const FAMILIA_COLORS = {"Alimentos": "#10B981", "Transporte": "#3B82F6", "Salud": "#EC4899", "Educación": "#8B5CF6", "Ropa": "#F59E0B", "Existencias": "#6366F1", "Deporte": "#14B8A6", "Ocio": "#F97316", "Extras": "#EF4444", "Gastos Casa": "#84CC16", "Cuenta Básica": "#06B6D4", "Arriendo": "#A78BFA"};
 function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
   const filtradas = filtrarPorMes(transaccionesRegistradas.filter(t => t.tipo===tipo), mes);
   const total = filtradas.reduce((s,t) => s+t.monto, 0);
