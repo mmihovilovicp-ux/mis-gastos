@@ -410,7 +410,7 @@ function renderResumenDemo() {
   lista.innerHTML = sorted.map(([f, data], i) => {
     const detalleId = `detalle-demo-${i}`;
     const chevronId = `chevron-demo-${i}`;
-    const itemsHtml = [...data.items].sort((a,b) => { const da=parsearFechaRegistro(a.fecha); const db=parsearFechaRegistro(b.fecha); return db-da; }).map(t => `
+    const itemsHtml = [...data.items].sort((a,b) => { const da=parsearFechaRegistro(a.fecha); const db=parsearFechaRegistro(b.fecha); if (!da && !db) return 0; if (!da) return 1; if (!db) return -1; const diff=db-da; return diff !== 0 ? diff : b.monto-a.monto; }).map(t => `
       <div class="resumen-detalle-item">
         <span class="resumen-detalle-comercio">${t.item}</span>
         <span class="resumen-detalle-fecha">${t.fecha}</span>
