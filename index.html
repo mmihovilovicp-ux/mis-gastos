@@ -680,7 +680,7 @@ function renderResumenPorTipo(tipo, idTotal, idCount, idLista, mes) {
   if (sorted.length===0) { document.getElementById(idLista).innerHTML=`<div class="empty" style="padding:24px 20px;"><p style="font-size:13px;">Sin gastos ${tipo.toLowerCase()}es en ${mesLabel(mes)}</p></div>`; return; }
   document.getElementById(idLista).innerHTML = sorted.map(([f,data],i) => {
     const detalleId=`detalle-${tipo}-${i}`, chevronId=`chevron-${tipo}-${i}`;
-    const itemsHtml = [...data.items].sort((a,b)=>b.monto-a.monto).map(t=>`
+    const itemsHtml = [...data.items].sort((a,b) => { const fa=(a.fecha||"").match(/(\d{2})-(\d{2})-(\d{4})/); const fb=(b.fecha||"").match(/(\d{2})-(\d{2})-(\d{4})/); const sa=fa?fa[3]+fa[2]+fa[1]:"0"; const sb=fb?fb[3]+fb[2]+fb[1]:"0"; return sb>sa?1:sb<sa?-1:0; }).map(t=>`
       <div class="resumen-detalle-item">
         <span class="resumen-detalle-comercio">${t.item||t.comercio||'-'}</span>
         <span class="resumen-detalle-fecha">${t.fecha}</span>
