@@ -131,10 +131,9 @@
     <div class="stat"><div class="stat-label">&#128188; Total Personal</div><div class="stat-value" id="stat-total-personal">$0</div></div>
     <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-personal">0</div></div>
   </div>
-  <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Últimos registros</p>
-  <div id="ultimos-personal"></div>
-  <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px;">Por categoría</p>
   <div id="lista-resumen-personal"></div>
+  <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px;">Últimos registros</p>
+  <div id="ultimos-personal"></div>
 </div>
 
 <div id="tab-familiar" class="section">
@@ -147,10 +146,9 @@
     <div class="stat"><div class="stat-label">&#128106; Total Familiar</div><div class="stat-value" id="stat-total-familiar">$0</div></div>
     <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-familiar">0</div></div>
   </div>
-  <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Últimos registros</p>
-  <div id="ultimos-familiar"></div>
-  <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px;">Por categoría</p>
   <div id="lista-resumen-familiar"></div>
+  <p style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;margin-top:16px;">Últimos registros</p>
+  <div id="ultimos-familiar"></div>
 </div>
 
 <div id="tab-gastos" class="section">
@@ -576,7 +574,7 @@ function renderUltimos(tipo, idEl) {
     <div style="background:#fff;border-radius:10px;border:0.5px solid #e0e0e0;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-size:14px;font-weight:500;color:#1c1c1e;">${t.item}</div>
-        <div style="font-size:12px;color:#888;margin-top:2px;">${t.familia} · ${t.fecha}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px;">${t.fecha}</div>
       </div>
       <div style="font-size:16px;font-weight:700;color:#007AFF;">$${t.monto.toLocaleString('es-CL')}</div>
     </div>`).join('');
