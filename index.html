@@ -563,9 +563,8 @@ function renderRegistrados() {
   }).join('');
 }
 
-function renderUltimos(tipo, idEl) {
-  const ultimos = [...transaccionesRegistradas]
-    .filter(t => t.tipo === tipo)
+function renderUltimos(tipo, idEl, mes) {
+  const ultimos = filtrarPorMes(transaccionesRegistradas.filter(t => t.tipo === tipo), mes)
     .slice(-3)
     .reverse();
   const el = document.getElementById(idEl);
@@ -583,8 +582,8 @@ function renderUltimos(tipo, idEl) {
 function renderResumen() {
   document.getElementById('mes-label-personal').textContent = mesLabel(mesActual.personal);
   document.getElementById('mes-label-familiar').textContent = mesLabel(mesActual.familiar);
-  renderUltimos('Personal', 'ultimos-personal');
-  renderUltimos('Familiar', 'ultimos-familiar');
+  renderUltimos('Personal', 'ultimos-personal', mesActual.personal);
+  renderUltimos('Familiar', 'ultimos-familiar', mesActual.familiar);
   renderResumenPorTipo('Personal','stat-total-personal','stat-count-personal','lista-resumen-personal',mesActual.personal);
   renderResumenPorTipo('Familiar','stat-total-familiar','stat-count-familiar','lista-resumen-familiar',mesActual.familiar);
 }
