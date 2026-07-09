@@ -258,6 +258,17 @@
     <h2 id="modal-titulo">Categorizar gasto</h2>
     <p class="modal-info" id="modal-info"></p>
     <div class="form-group">
+      <label class="form-label">Banco</label>
+      <select class="form-input" id="modal-banco" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="Santander Visa" selected>Santander Visa</option>
+<option value="Santander Amex">Santander Amex</option>
+<option value="Santander Transferencia">Santander Transferencia</option>
+<option value="Scotiabank">Scotiabank</option>
+<option value="BChile Visa">BChile Visa</option>
+<option value="BChile Transferencia">BChile Transferencia</option>
+<option value="Itau">Itau</option>
+<option value="CMR">CMR</option></select>
+    </div>
+    <div class="form-group">
       <label class="form-label">Item (¿en qué gastaste?)</label>
       <input class="form-input" id="modal-item" placeholder="ej: Supermercado, Kine, Gasolina..." />
     </div>
@@ -283,7 +294,14 @@
     <p class="modal-info">Se guardará directo en Registrados y Google Sheets</p>
     <div class="form-group">
       <label class="form-label">Banco</label>
-      <input class="form-input" id="manual-banco" placeholder="Santander" value="Santander" />
+      <select class="form-input" id="manual-banco" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="Santander Visa" selected>Santander Visa</option>
+<option value="Santander Amex">Santander Amex</option>
+<option value="Santander Transferencia">Santander Transferencia</option>
+<option value="Scotiabank">Scotiabank</option>
+<option value="BChile Visa">BChile Visa</option>
+<option value="BChile Transferencia">BChile Transferencia</option>
+<option value="Itau">Itau</option>
+<option value="CMR">CMR</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Monto</label>
@@ -316,6 +334,17 @@
     <h2>Editar registro</h2>
     <p class="modal-info">Esto solo edita la copia local de la app, no tu Google Sheets</p>
     <div class="form-group">
+      <label class="form-label">Banco</label>
+      <select class="form-input" id="editar-banco" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="Santander Visa" selected>Santander Visa</option>
+<option value="Santander Amex">Santander Amex</option>
+<option value="Santander Transferencia">Santander Transferencia</option>
+<option value="Scotiabank">Scotiabank</option>
+<option value="BChile Visa">BChile Visa</option>
+<option value="BChile Transferencia">BChile Transferencia</option>
+<option value="Itau">Itau</option>
+<option value="CMR">CMR</option></select>
+    </div>
+    <div class="form-group">
       <label class="form-label">Item</label>
       <input class="form-input" id="editar-item" />
     </div>
@@ -338,6 +367,7 @@
 </div>
 
 <script>
+const BANCOS = ['Santander Visa','Santander Amex','Santander Transferencia','Scotiabank','BChile Visa','BChile Transferencia','Itau','CMR'];
 const FAMILIAS = ['Alimentos','Transporte','Salud','Educación','Ropa','Existencias','Deporte','Ocio','Extras','Gastos Casa','Cuenta Básica','Arriendo'];
 const TIPOS = ['Personal','Familiar'];
 let transaccionesPendientes = [];
@@ -725,6 +755,7 @@ function abrirModal(i) {
   const t=transaccionesPendientes[i];
   document.getElementById('modal-titulo').textContent='$'+t.monto.toLocaleString('es-CL');
   document.getElementById('modal-info').textContent=t.comercio+' · '+t.fecha;
+  document.getElementById('modal-banco').value='Santander Visa';
   document.getElementById('modal-item').value='';
   renderFamilias(); renderTipos();
   document.getElementById('modal').classList.add('open');
@@ -737,7 +768,8 @@ async function guardarGasto() {
   if (!familiaSeleccionada) { showToast('Selecciona una familia'); return; }
   if (!tipoSeleccionado) { showToast('Selecciona Personal o Familiar'); return; }
   const t=transaccionesPendientes[transaccionActual];
-  const registro={...t,item,familia:familiaSeleccionada,tipo:tipoSeleccionado};
+  const banco=document.getElementById('modal-banco').value;
+  const registro={...t,banco,item,familia:familiaSeleccionada,tipo:tipoSeleccionado};
   const btn=document.getElementById('btn-guardar-gasto');
   btn.disabled=true; btn.textContent='Guardando...';
   let envioOk=true, errorMsg='';
@@ -766,7 +798,7 @@ function montoDesdeInput(id) { const raw=document.getElementById(id).value.repla
 let manualFamiliaSel='', manualTipoSel='';
 function abrirModalManual() {
   manualFamiliaSel=''; manualTipoSel='';
-  document.getElementById('manual-banco').value='Santander';
+  document.getElementById('manual-banco').value='Santander Visa';
   document.getElementById('manual-monto').value='';
   document.getElementById('manual-comercio').value='';
   const hoy=new Date();
@@ -815,6 +847,7 @@ function editarRegistro(i) {
   editarIdx=i;
   const t=transaccionesRegistradas[i];
   editarFamiliaSel=t.familia;
+  document.getElementById('editar-banco').value=t.banco||'Santander Visa';
   document.getElementById('editar-item').value=t.item;
   document.getElementById('editar-monto').value='$ '+t.monto.toLocaleString('es-CL');
   document.getElementById('editar-comercio').value=t.comercio;
@@ -834,7 +867,8 @@ function guardarEdicion() {
   const comercio=document.getElementById('editar-comercio').value.trim();
   if (!item) { showToast('El item no puede estar vacío',true); return; }
   if (!monto||monto<=0) { showToast('Monto inválido',true); return; }
-  transaccionesRegistradas[editarIdx]={...transaccionesRegistradas[editarIdx],item,monto,comercio,familia:editarFamiliaSel};
+  const banco=document.getElementById('editar-banco').value;
+  transaccionesRegistradas[editarIdx]={...transaccionesRegistradas[editarIdx],banco,item,monto,comercio,familia:editarFamiliaSel};
   localStorage.setItem('gastos_registrados',JSON.stringify(transaccionesRegistradas));
   renderRegistrados(); renderResumen(); cerrarModalEditar();
   showToast('✓ Cambios guardados (solo en la app)');
