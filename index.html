@@ -99,6 +99,12 @@
   .search-box input:focus { border-color: var(--azul); }
   .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; }
   .search-count { font-size: 11px; color: var(--gris-texto); margin-bottom: 8px; text-align: right; }
+  .fijo-item { background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); padding: 14px 16px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .fijo-nombre { font-size: 14px; font-weight: 500; color: var(--texto); }
+  .fijo-pagado { display: flex; align-items: center; gap: 8px; }
+  .fijo-monto { font-size: 14px; font-weight: 600; color: #059669; }
+  .fijo-badge-ok { background: #DCFCE7; color: #059669; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .fijo-badge-pending { background: #FEE2E2; color: #DC2626; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
   .demo-banner { background: #FFFBEB; border: 0.5px solid #FCD34D; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #92400E; text-align: center; }
   .demo-toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--gris-card); border-radius: 12px; border: 0.5px solid var(--gris-borde); padding: 14px 16px; margin-bottom: 8px; }
   .demo-toggle-label { font-size: 15px; font-weight: 500; color: var(--texto); }
@@ -153,6 +159,7 @@
   <div class="subtabs-bar">
     <button id="subtab-personal-resumen-btn" class="subtab-btn active" onclick="showSubTab('personal','resumen')">Resumen</button>
     <button id="subtab-personal-registros-btn" class="subtab-btn" onclick="showSubTab('personal','registros')">Registros</button>
+    <button id="subtab-personal-fijos-btn" class="subtab-btn" onclick="showSubTab('personal','fijos')">Gastos Fijos</button>
   </div>
   <div id="subtab-personal-resumen">
     <div class="stats">
@@ -171,6 +178,9 @@
     <div class="search-count" id="count-personal"></div>
     <div id="lista-registros-personal"></div>
   </div>
+  <div id="subtab-personal-fijos" style="display:none;">
+    <div id="lista-fijos-personal"></div>
+  </div>
 </div>
 
 <div id="tab-familiar" class="section">
@@ -182,6 +192,7 @@
   <div class="subtabs-bar">
     <button id="subtab-familiar-resumen-btn" class="subtab-btn active" onclick="showSubTab('familiar','resumen')">Resumen</button>
     <button id="subtab-familiar-registros-btn" class="subtab-btn" onclick="showSubTab('familiar','registros')">Registros</button>
+    <button id="subtab-familiar-fijos-btn" class="subtab-btn" onclick="showSubTab('familiar','fijos')">Gastos Fijos</button>
   </div>
   <div id="subtab-familiar-resumen">
     <div class="stats">
@@ -199,6 +210,9 @@
     </div>
     <div class="search-count" id="count-familiar"></div>
     <div id="lista-registros-familiar"></div>
+  </div>
+  <div id="subtab-familiar-fijos" style="display:none;">
+    <div id="lista-fijos-familiar"></div>
   </div>
 </div>
 
@@ -275,22 +289,8 @@
     <div class="form-group">
       <label class="form-label">Item (¿en qué gastaste?)</label>
       <input class="form-input" id="modal-item" placeholder="ej: Supermercado, Kine, Gasolina..." />
-      <select class="form-input" id="modal-item-cb" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="Rappi Pro Semestral">Rappi Pro Semestral</option>
-<option value="Invictos Martín">Invictos Martín</option>
-<option value="Tag AVO">Tag AVO</option>
-<option value="Tag Costanera">Tag Costanera</option>
-<option value="Seguro I10">Seguro I10</option>
-<option value="Wellhub">Wellhub</option>
-<option value="Todo Alemana">Todo Alemana</option>
-<option value="Dgo + Disney">Dgo + Disney</option>
-<option value="Fraude Santander">Fraude Santander</option>
-<option value="Seguro I30">Seguro I30</option>
-<option value="Administracion Cmr">Administracion Cmr</option>
-<option value="GTD">GTD</option>
-<option value="Star+">Star+</option>
-<option value="Aguas andinas">Aguas andinas</option>
-<option value="Gas">Gas</option>
-<option value="Luz">Luz</option></select>
+      <select class="form-input" id="modal-item-cb-mati" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="Rappi Pro Semestral">Rappi Pro Semestral</option><option value="Invictos Martín">Invictos Martín</option><option value="Tag AVO">Tag AVO</option><option value="Tag Costanera">Tag Costanera</option><option value="Seguro I10">Seguro I10</option><option value="Wellhub">Wellhub</option><option value="Todo Alemana">Todo Alemana</option><option value="Dgo + Disney">Dgo + Disney</option><option value="Fraude Santander">Fraude Santander</option><option value="Seguro I30">Seguro I30</option><option value="Administracion Cmr">Administracion Cmr</option></select>
+      <select class="form-input" id="modal-item-cb-casa" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="GTD">GTD</option><option value="Star+">Star+</option><option value="Aguas andinas">Aguas andinas</option><option value="Gas">Gas</option><option value="Luz">Luz</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Tipo de gasto</label>
@@ -330,22 +330,8 @@
     <div class="form-group">
       <label class="form-label">Item / Comercio</label>
       <input class="form-input" id="manual-comercio" placeholder="ej: Supermercado Lider" />
-      <select class="form-input" id="manual-item-cb" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="Rappi Pro Semestral">Rappi Pro Semestral</option>
-<option value="Invictos Martín">Invictos Martín</option>
-<option value="Tag AVO">Tag AVO</option>
-<option value="Tag Costanera">Tag Costanera</option>
-<option value="Seguro I10">Seguro I10</option>
-<option value="Wellhub">Wellhub</option>
-<option value="Todo Alemana">Todo Alemana</option>
-<option value="Dgo + Disney">Dgo + Disney</option>
-<option value="Fraude Santander">Fraude Santander</option>
-<option value="Seguro I30">Seguro I30</option>
-<option value="Administracion Cmr">Administracion Cmr</option>
-<option value="GTD">GTD</option>
-<option value="Star+">Star+</option>
-<option value="Aguas andinas">Aguas andinas</option>
-<option value="Gas">Gas</option>
-<option value="Luz">Luz</option></select>
+      <select class="form-input" id="manual-item-cb-mati" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="Rappi Pro Semestral">Rappi Pro Semestral</option><option value="Invictos Martín">Invictos Martín</option><option value="Tag AVO">Tag AVO</option><option value="Tag Costanera">Tag Costanera</option><option value="Seguro I10">Seguro I10</option><option value="Wellhub">Wellhub</option><option value="Todo Alemana">Todo Alemana</option><option value="Dgo + Disney">Dgo + Disney</option><option value="Fraude Santander">Fraude Santander</option><option value="Seguro I30">Seguro I30</option><option value="Administracion Cmr">Administracion Cmr</option></select>
+      <select class="form-input" id="manual-item-cb-casa" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="GTD">GTD</option><option value="Star+">Star+</option><option value="Aguas andinas">Aguas andinas</option><option value="Gas">Gas</option><option value="Luz">Luz</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Fecha</label>
@@ -399,9 +385,10 @@
 </div>
 
 <script>
-const CUENTA_BASICA_ITEMS = ["Rappi Pro Semestral", "Invictos Martín", "Tag AVO", "Tag Costanera", "Seguro I10", "Wellhub", "Todo Alemana", "Dgo + Disney", "Fraude Santander", "Seguro I30", "Administracion Cmr", "GTD", "Star+", "Aguas andinas", "Gas", "Luz"];
+const CB_MATI_ITEMS = ["Rappi Pro Semestral", "Invictos Martín", "Tag AVO", "Tag Costanera", "Seguro I10", "Wellhub", "Todo Alemana", "Dgo + Disney", "Fraude Santander", "Seguro I30", "Administracion Cmr"];
+const CB_CASA_ITEMS = ["GTD", "Star+", "Aguas andinas", "Gas", "Luz"];
 const BANCOS = ['Santander Visa','Santander Amex','Santander Transferencia','Scotiabank','BChile Visa','BChile Transferencia','Itau','CMR'];
-const FAMILIAS = ['Alimentos','Transporte','Salud','Educación','Ropa','Existencias','Deporte','Ocio','Extras','Gastos Casa','Cuenta Básica','Arriendo'];
+const FAMILIAS = ['Alimentos','Transporte','Salud','Educación','Ropa','Existencias','Deporte','Ocio','Extras','Gastos Casa','Cuenta Básica Mati','Cuenta Básica Casa','Arriendo'];
 const TIPOS = ['Personal','Familiar'];
 let transaccionesPendientes = [];
 let transaccionesRegistradas = [];
@@ -529,20 +516,72 @@ function toggleModoDemo(activo) {
 // ── FIN DATOS DEMO ───────────────────────────────────────────────────────────
 
 function showSubTab(tipo, sub) {
-  const resumenEl = document.getElementById('subtab-' + tipo + '-resumen');
-  const registrosEl = document.getElementById('subtab-' + tipo + '-registros');
-  const resumenBtn = document.getElementById('subtab-' + tipo + '-resumen-btn');
-  const registrosBtn = document.getElementById('subtab-' + tipo + '-registros-btn');
-  const isResumen = sub === 'resumen';
-  resumenEl.style.display = isResumen ? '' : 'none';
-  registrosEl.style.display = isResumen ? 'none' : '';
-  resumenBtn.className = isResumen ? 'subtab-btn active' : 'subtab-btn';
-  registrosBtn.className = isResumen ? 'subtab-btn' : 'subtab-btn active';
-  if (!isResumen) {
+  const subs = ['resumen', 'registros', 'fijos'];
+  subs.forEach(s => {
+    const el = document.getElementById('subtab-' + tipo + '-' + s);
+    const btn = document.getElementById('subtab-' + tipo + '-' + s + '-btn');
+    if (el) el.style.display = s === sub ? '' : 'none';
+    if (btn) btn.className = s === sub ? 'subtab-btn active' : 'subtab-btn';
+  });
+  if (sub === 'registros') {
     const tipoLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1);
     const mes = mesActual[tipo];
     renderRegistradosPorTipo(tipoLabel, 'lista-registros-' + tipo, 'buscador-' + tipo, 'count-' + tipo, mes);
   }
+  if (sub === 'fijos') {
+    renderGastosFijos(tipo);
+  }
+}
+
+function renderGastosFijos(tipo) {
+  const CB_MATI_ITEMS = ["Rappi Pro Semestral","Invictos Martín","Tag AVO","Tag Costanera","Seguro I10","Wellhub","Todo Alemana","Dgo + Disney","Fraude Santander","Seguro I30","Administracion Cmr"];
+  const CB_CASA_ITEMS = ["GTD","Star+","Aguas andinas","Gas","Luz"];
+  const items = tipo === 'personal' ? CB_MATI_ITEMS : CB_CASA_ITEMS;
+  const familia = tipo === 'personal' ? 'Cuenta Básica Mati' : 'Cuenta Básica Casa';
+  const mes = mesActual[tipo];
+  const del_mes = filtrarPorMes(transaccionesRegistradas.filter(t => t.familia === familia), mes);
+  const el = document.getElementById('lista-fijos-' + tipo);
+
+  const pagados = del_mes.length;
+  const total = items.length;
+  const sumaPagada = del_mes.reduce((s,t) => s + t.monto, 0);
+
+  let html = `<div style="background:var(--gris-card);border-radius:12px;border:0.5px solid var(--gris-borde);padding:14px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Pagados este mes</div>
+      <div style="font-size:22px;font-weight:600;color:var(--texto);">${pagados} / ${total}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Total pagado</div>
+      <div style="font-size:22px;font-weight:600;color:#059669;">$${sumaPagada.toLocaleString('es-CL')}</div>
+    </div>
+  </div>`;
+
+  html += items.map(nombre => {
+    const registro = del_mes.find(t => t.item === nombre);
+    if (registro) {
+      return `<div class="fijo-item">
+        <div>
+          <div class="fijo-nombre">${nombre}</div>
+        </div>
+        <div class="fijo-pagado">
+          <span class="fijo-monto">$${registro.monto.toLocaleString('es-CL')}</span>
+          <span class="fijo-badge-ok">✓ Pagado</span>
+        </div>
+      </div>`;
+    } else {
+      return `<div class="fijo-item">
+        <div>
+          <div class="fijo-nombre">${nombre}</div>
+        </div>
+        <div class="fijo-pagado">
+          <span class="fijo-badge-pending">✗ Pendiente</span>
+        </div>
+      </div>`;
+    }
+  }).join('');
+
+  el.innerHTML = html;
 }
 
 function renderRegistradosPorTipo(tipo, idLista, idBuscador, idCount, mes) {
@@ -635,10 +674,14 @@ function renderFamilias() {
 function selFamilia(f) {
   familiaSeleccionada = f;
   renderFamilias();
-  const esCB = f === 'Cuenta Básica';
+  const esMati = f === 'Cuenta Básica Mati';
+  const esCasa = f === 'Cuenta Básica Casa';
+  const esCB = esMati || esCasa;
   document.getElementById('modal-item').style.display = esCB ? 'none' : '';
-  document.getElementById('modal-item-cb').style.display = esCB ? '' : 'none';
-  if (esCB) document.getElementById('modal-item-cb').value = '';
+  document.getElementById('modal-item-cb-mati').style.display = esMati ? '' : 'none';
+  document.getElementById('modal-item-cb-casa').style.display = esCasa ? '' : 'none';
+  if (esMati) document.getElementById('modal-item-cb-mati').value = '';
+  else if (esCasa) document.getElementById('modal-item-cb-casa').value = '';
   else document.getElementById('modal-item').value = '';
 }
 function renderTipos() {
@@ -799,7 +842,8 @@ function abrirModal(i) {
   document.getElementById('modal-banco').value='Santander Visa';
   document.getElementById('modal-item').value='';
   document.getElementById('modal-item').style.display='';
-  document.getElementById('modal-item-cb').style.display='none';
+  document.getElementById('modal-item-cb-mati').style.display='none';
+  document.getElementById('modal-item-cb-casa').style.display='none';
   renderFamilias(); renderTipos();
   document.getElementById('modal').classList.add('open');
 }
@@ -812,9 +856,10 @@ async function guardarGasto() {
   if (!tipoSeleccionado) { showToast('Selecciona Personal o Familiar'); return; }
   const t=transaccionesPendientes[transaccionActual];
   const banco=document.getElementById('modal-banco').value;
-  const esCB = familiaSeleccionada === 'Cuenta Básica';
-  const itemVal = esCB ? document.getElementById('modal-item-cb').value : document.getElementById('modal-item').value.trim();
-  if (!itemVal) { showToast(esCB ? 'Selecciona un item' : 'Escribe el item'); return; }
+  const esMatiG = familiaSeleccionada === 'Cuenta Básica Mati';
+  const esCasaG = familiaSeleccionada === 'Cuenta Básica Casa';
+  const itemVal = esMatiG ? document.getElementById('modal-item-cb-mati').value : esCasaG ? document.getElementById('modal-item-cb-casa').value : document.getElementById('modal-item').value.trim();
+  if (!itemVal) { showToast((esMatiG||esCasaG) ? 'Selecciona un item' : 'Escribe el item'); return; }
   const registro={...t,banco,item:itemVal,familia:familiaSeleccionada,tipo:tipoSeleccionado};
   const btn=document.getElementById('btn-guardar-gasto');
   btn.disabled=true; btn.textContent='Guardando...';
@@ -831,6 +876,8 @@ async function guardarGasto() {
   localStorage.setItem('gastos_registrados',JSON.stringify(transaccionesRegistradas));
   btn.disabled=false; btn.textContent='Guardar en Sheets';
   cerrarModal(); renderPendientes(); renderRegistrados(); renderResumen();
+  if (document.getElementById("subtab-personal-fijos") && document.getElementById("subtab-personal-fijos").style.display !== "none") renderGastosFijos("personal");
+  if (document.getElementById("subtab-familiar-fijos") && document.getElementById("subtab-familiar-fijos").style.display !== "none") renderGastosFijos("familiar");
   showToast(envioOk?'✓ Gasto registrado y enviado':'⚠ Error: '+errorMsg,!envioOk);
 }
 
@@ -848,7 +895,8 @@ function abrirModalManual() {
   document.getElementById('manual-monto').value='';
   document.getElementById('manual-comercio').value='';
   document.getElementById('manual-comercio').style.display='';
-  document.getElementById('manual-item-cb').style.display='none';
+  document.getElementById('manual-item-cb-mati').style.display='none';
+  document.getElementById('manual-item-cb-casa').style.display='none';
   const hoy=new Date();
   document.getElementById('manual-fecha').value=`${String(hoy.getDate()).padStart(2,'0')}-${String(hoy.getMonth()+1).padStart(2,'0')}-${hoy.getFullYear()}`;
   renderManualFamilias(); renderManualTipos();
@@ -860,10 +908,14 @@ function renderManualFamilias() {
 function selManualFamilia(f) {
   manualFamiliaSel=f;
   renderManualFamilias();
-  const esCB = f === 'Cuenta Básica';
+  const esMati = f === 'Cuenta Básica Mati';
+  const esCasa = f === 'Cuenta Básica Casa';
+  const esCB = esMati || esCasa;
   document.getElementById('manual-comercio').style.display = esCB ? 'none' : '';
-  document.getElementById('manual-item-cb').style.display = esCB ? '' : 'none';
-  if (esCB) document.getElementById('manual-item-cb').value = '';
+  document.getElementById('manual-item-cb-mati').style.display = esMati ? '' : 'none';
+  document.getElementById('manual-item-cb-casa').style.display = esCasa ? '' : 'none';
+  if (esMati) document.getElementById('manual-item-cb-mati').value = '';
+  else if (esCasa) document.getElementById('manual-item-cb-casa').value = '';
   else document.getElementById('manual-comercio').value = '';
 }
 function renderManualTipos() {
@@ -875,9 +927,10 @@ function cerrarModalManual() { document.getElementById('modal-manual').classList
 async function guardarManual() {
   const banco=document.getElementById('manual-banco').value.trim()||'Santander';
   const monto=montoDesdeInput('manual-monto');
-  const esCBm = manualFamiliaSel === 'Cuenta Básica';
-  const item = esCBm ? document.getElementById('manual-item-cb').value : (document.getElementById('manual-comercio').value.trim()||'Transacción manual');
-  if (esCBm && !item) { showToast('Selecciona un item',true); return; }
+  const esMatiM = manualFamiliaSel === 'Cuenta Básica Mati';
+  const esCasaM = manualFamiliaSel === 'Cuenta Básica Casa';
+  const item = esMatiM ? document.getElementById('manual-item-cb-mati').value : esCasaM ? document.getElementById('manual-item-cb-casa').value : (document.getElementById('manual-comercio').value.trim()||'Transacción manual');
+  if ((esMatiM||esCasaM) && !item) { showToast('Selecciona un item',true); return; }
   const fecha=document.getElementById('manual-fecha').value.trim();
   if (!monto||monto<=0) { showToast('Ingresa un monto válido',true); return; }
   if (!fecha) { showToast('Ingresa una fecha',true); return; }
