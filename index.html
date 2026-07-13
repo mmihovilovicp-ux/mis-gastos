@@ -258,6 +258,10 @@
     <h2 id="modal-titulo">Categorizar gasto</h2>
     <p class="modal-info" id="modal-info"></p>
     <div class="form-group">
+      <label class="form-label">Familia</label>
+      <div class="familia-grid" id="familia-grid"></div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Banco</label>
       <select class="form-input" id="modal-banco" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="Santander Visa" selected>Santander Visa</option>
 <option value="Santander Amex">Santander Amex</option>
@@ -271,10 +275,22 @@
     <div class="form-group">
       <label class="form-label">Item (¿en qué gastaste?)</label>
       <input class="form-input" id="modal-item" placeholder="ej: Supermercado, Kine, Gasolina..." />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Familia</label>
-      <div class="familia-grid" id="familia-grid"></div>
+      <select class="form-input" id="modal-item-cb" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="Rappi Pro Semestral">Rappi Pro Semestral</option>
+<option value="Invictos Martín">Invictos Martín</option>
+<option value="Tag AVO">Tag AVO</option>
+<option value="Tag Costanera">Tag Costanera</option>
+<option value="Seguro I10">Seguro I10</option>
+<option value="Wellhub">Wellhub</option>
+<option value="Todo Alemana">Todo Alemana</option>
+<option value="Dgo + Disney">Dgo + Disney</option>
+<option value="Fraude Santander">Fraude Santander</option>
+<option value="Seguro I30">Seguro I30</option>
+<option value="Administracion Cmr">Administracion Cmr</option>
+<option value="GTD">GTD</option>
+<option value="Star+">Star+</option>
+<option value="Aguas andinas">Aguas andinas</option>
+<option value="Gas">Gas</option>
+<option value="Luz">Luz</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Tipo de gasto</label>
@@ -293,6 +309,10 @@
     <h2>Agregar registro manual</h2>
     <p class="modal-info">Se guardará directo en Registrados y Google Sheets</p>
     <div class="form-group">
+      <label class="form-label">Familia</label>
+      <div class="familia-grid" id="manual-familia-grid"></div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Banco</label>
       <select class="form-input" id="manual-banco" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="Santander Visa" selected>Santander Visa</option>
 <option value="Santander Amex">Santander Amex</option>
@@ -310,14 +330,26 @@
     <div class="form-group">
       <label class="form-label">Item / Comercio</label>
       <input class="form-input" id="manual-comercio" placeholder="ej: Supermercado Lider" />
+      <select class="form-input" id="manual-item-cb" style="display:none;width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;"><option value="">Selecciona...</option><option value="Rappi Pro Semestral">Rappi Pro Semestral</option>
+<option value="Invictos Martín">Invictos Martín</option>
+<option value="Tag AVO">Tag AVO</option>
+<option value="Tag Costanera">Tag Costanera</option>
+<option value="Seguro I10">Seguro I10</option>
+<option value="Wellhub">Wellhub</option>
+<option value="Todo Alemana">Todo Alemana</option>
+<option value="Dgo + Disney">Dgo + Disney</option>
+<option value="Fraude Santander">Fraude Santander</option>
+<option value="Seguro I30">Seguro I30</option>
+<option value="Administracion Cmr">Administracion Cmr</option>
+<option value="GTD">GTD</option>
+<option value="Star+">Star+</option>
+<option value="Aguas andinas">Aguas andinas</option>
+<option value="Gas">Gas</option>
+<option value="Luz">Luz</option></select>
     </div>
     <div class="form-group">
       <label class="form-label">Fecha</label>
       <input class="form-input" id="manual-fecha" placeholder="dd-mm-aaaa" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Familia</label>
-      <div class="familia-grid" id="manual-familia-grid"></div>
     </div>
     <div class="form-group">
       <label class="form-label">Tipo de gasto</label>
@@ -367,6 +399,7 @@
 </div>
 
 <script>
+const CUENTA_BASICA_ITEMS = ["Rappi Pro Semestral", "Invictos Martín", "Tag AVO", "Tag Costanera", "Seguro I10", "Wellhub", "Todo Alemana", "Dgo + Disney", "Fraude Santander", "Seguro I30", "Administracion Cmr", "GTD", "Star+", "Aguas andinas", "Gas", "Luz"];
 const BANCOS = ['Santander Visa','Santander Amex','Santander Transferencia','Scotiabank','BChile Visa','BChile Transferencia','Itau','CMR'];
 const FAMILIAS = ['Alimentos','Transporte','Salud','Educación','Ropa','Existencias','Deporte','Ocio','Extras','Gastos Casa','Cuenta Básica','Arriendo'];
 const TIPOS = ['Personal','Familiar'];
@@ -599,7 +632,15 @@ function renderFamilias() {
   document.getElementById('familia-grid').innerHTML = FAMILIAS.map(f =>
     `<button class="familia-btn ${familiaSeleccionada===f?'selected':''}" onclick="selFamilia('${f}')">${f}</button>`).join('');
 }
-function selFamilia(f) { familiaSeleccionada = f; renderFamilias(); }
+function selFamilia(f) {
+  familiaSeleccionada = f;
+  renderFamilias();
+  const esCB = f === 'Cuenta Básica';
+  document.getElementById('modal-item').style.display = esCB ? 'none' : '';
+  document.getElementById('modal-item-cb').style.display = esCB ? '' : 'none';
+  if (esCB) document.getElementById('modal-item-cb').value = '';
+  else document.getElementById('modal-item').value = '';
+}
 function renderTipos() {
   document.getElementById('tipo-grid').innerHTML = TIPOS.map(t =>
     `<button class="familia-btn ${tipoSeleccionado===t?'selected':''}" onclick="selTipo('${t}')">${t}</button>`).join('');
@@ -757,6 +798,8 @@ function abrirModal(i) {
   document.getElementById('modal-info').textContent=t.comercio+' · '+t.fecha;
   document.getElementById('modal-banco').value='Santander Visa';
   document.getElementById('modal-item').value='';
+  document.getElementById('modal-item').style.display='';
+  document.getElementById('modal-item-cb').style.display='none';
   renderFamilias(); renderTipos();
   document.getElementById('modal').classList.add('open');
 }
@@ -769,13 +812,16 @@ async function guardarGasto() {
   if (!tipoSeleccionado) { showToast('Selecciona Personal o Familiar'); return; }
   const t=transaccionesPendientes[transaccionActual];
   const banco=document.getElementById('modal-banco').value;
-  const registro={...t,banco,item,familia:familiaSeleccionada,tipo:tipoSeleccionado};
+  const esCB = familiaSeleccionada === 'Cuenta Básica';
+  const itemVal = esCB ? document.getElementById('modal-item-cb').value : document.getElementById('modal-item').value.trim();
+  if (!itemVal) { showToast(esCB ? 'Selecciona un item' : 'Escribe el item'); return; }
+  const registro={...t,banco,item:itemVal,familia:familiaSeleccionada,tipo:tipoSeleccionado};
   const btn=document.getElementById('btn-guardar-gasto');
   btn.disabled=true; btn.textContent='Guardando...';
   let envioOk=true, errorMsg='';
   if (config.webhook) {
     try {
-      const resp=await fetch(config.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({familia:familiaSeleccionada,item,banco:t.banco,fecha:t.fecha+'\u200B',monto:t.monto,tipo:tipoSeleccionado,texto:t.textoOriginal})});
+      const resp=await fetch(config.webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({familia:familiaSeleccionada,item:itemVal,banco:banco,fecha:t.fecha+'\u200B',monto:t.monto,tipo:tipoSeleccionado,texto:t.textoOriginal})});
       if (!resp.ok) { envioOk=false; errorMsg='HTTP '+resp.status; }
     } catch(e) { envioOk=false; errorMsg=e.message||'Error de red'; }
   } else { envioOk=false; errorMsg='No hay webhook configurado'; }
@@ -801,6 +847,8 @@ function abrirModalManual() {
   document.getElementById('manual-banco').value='Santander Visa';
   document.getElementById('manual-monto').value='';
   document.getElementById('manual-comercio').value='';
+  document.getElementById('manual-comercio').style.display='';
+  document.getElementById('manual-item-cb').style.display='none';
   const hoy=new Date();
   document.getElementById('manual-fecha').value=`${String(hoy.getDate()).padStart(2,'0')}-${String(hoy.getMonth()+1).padStart(2,'0')}-${hoy.getFullYear()}`;
   renderManualFamilias(); renderManualTipos();
@@ -809,7 +857,15 @@ function abrirModalManual() {
 function renderManualFamilias() {
   document.getElementById('manual-familia-grid').innerHTML=FAMILIAS.map(f=>`<button class="familia-btn ${manualFamiliaSel===f?'selected':''}" onclick="selManualFamilia('${f}')">${f}</button>`).join('');
 }
-function selManualFamilia(f) { manualFamiliaSel=f; renderManualFamilias(); }
+function selManualFamilia(f) {
+  manualFamiliaSel=f;
+  renderManualFamilias();
+  const esCB = f === 'Cuenta Básica';
+  document.getElementById('manual-comercio').style.display = esCB ? 'none' : '';
+  document.getElementById('manual-item-cb').style.display = esCB ? '' : 'none';
+  if (esCB) document.getElementById('manual-item-cb').value = '';
+  else document.getElementById('manual-comercio').value = '';
+}
 function renderManualTipos() {
   document.getElementById('manual-tipo-grid').innerHTML=TIPOS.map(t=>`<button class="familia-btn ${manualTipoSel===t?'selected':''}" onclick="selManualTipo('${t}')">${t}</button>`).join('');
 }
@@ -819,7 +875,9 @@ function cerrarModalManual() { document.getElementById('modal-manual').classList
 async function guardarManual() {
   const banco=document.getElementById('manual-banco').value.trim()||'Santander';
   const monto=montoDesdeInput('manual-monto');
-  const item=document.getElementById('manual-comercio').value.trim()||'Transacción manual';
+  const esCBm = manualFamiliaSel === 'Cuenta Básica';
+  const item = esCBm ? document.getElementById('manual-item-cb').value : (document.getElementById('manual-comercio').value.trim()||'Transacción manual');
+  if (esCBm && !item) { showToast('Selecciona un item',true); return; }
   const fecha=document.getElementById('manual-fecha').value.trim();
   if (!monto||monto<=0) { showToast('Ingresa un monto válido',true); return; }
   if (!fecha) { showToast('Ingresa una fecha',true); return; }
