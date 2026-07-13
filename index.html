@@ -850,8 +850,6 @@ function abrirModal(i) {
 function cerrarModal() { document.getElementById('modal').classList.remove('open'); transaccionActual=null; }
 
 async function guardarGasto() {
-  const item=document.getElementById('modal-item').value.trim();
-  if (!item) { showToast('Escribe el item'); return; }
   if (!familiaSeleccionada) { showToast('Selecciona una familia'); return; }
   if (!tipoSeleccionado) { showToast('Selecciona Personal o Familiar'); return; }
   const t=transaccionesPendientes[transaccionActual];
