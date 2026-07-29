@@ -55,6 +55,8 @@
   .form-label { font-size: 12px; font-weight: 600; color: var(--gris-texto); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; display: block; }
   .form-input { width: 100%; padding: 12px 14px; border: 0.5px solid var(--gris-borde); border-radius: 10px; font-size: 15px; background: var(--gris-bg); outline: none; color: var(--texto); }
   .form-input:focus { border-color: var(--azul); background: #fff; }
+  input[type="date"].form-input { color: var(--texto); }
+  input[type="date"].form-input::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
   .familia-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 6px; }
   .familia-btn { padding: 10px; border: 0.5px solid var(--gris-borde); border-radius: 10px; background: var(--gris-bg); font-size: 13px; cursor: pointer; text-align: center; color: var(--texto-sec); }
   .familia-btn.selected { border-color: var(--azul); background: var(--azul-claro); color: var(--azul); font-weight: 500; }
@@ -325,7 +327,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">Monto</label>
-      <input class="form-input" id="manual-monto" type="text" inputmode="numeric" placeholder="$ 15.000" oninput="formatearMontoInput(this)" />
+      <input class="form-input" id="manual-monto" type="text" inputmode="numeric" placeholder="" oninput="formatearMontoInput(this)" />
     </div>
     <div class="form-group">
       <label class="form-label">Item / Comercio</label>
@@ -335,7 +337,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">Fecha</label>
-      <input class="form-input" id="manual-fecha" placeholder="dd-mm-aaaa" />
+      <input class="form-input" id="manual-fecha" type="date" />
     </div>
     <div class="form-group">
       <label class="form-label">Tipo de gasto</label>
@@ -896,7 +898,7 @@ function abrirModalManual() {
   document.getElementById('manual-item-cb-mati').style.display='none';
   document.getElementById('manual-item-cb-casa').style.display='none';
   const hoy=new Date();
-  document.getElementById('manual-fecha').value=`${String(hoy.getDate()).padStart(2,'0')}-${String(hoy.getMonth()+1).padStart(2,'0')}-${hoy.getFullYear()}`;
+  document.getElementById('manual-fecha').value=`${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
   renderManualFamilias(); renderManualTipos();
   document.getElementById('modal-manual').classList.add('open');
 }
@@ -929,7 +931,9 @@ async function guardarManual() {
   const esCasaM = manualFamiliaSel === 'Cuenta Básica Casa';
   const item = esMatiM ? document.getElementById('manual-item-cb-mati').value : esCasaM ? document.getElementById('manual-item-cb-casa').value : (document.getElementById('manual-comercio').value.trim()||'Transacción manual');
   if ((esMatiM||esCasaM) && !item) { showToast('Selecciona un item',true); return; }
-  const fecha=document.getElementById('manual-fecha').value.trim();
+  const fechaRaw=document.getElementById('manual-fecha').value.trim();
+  const fechaParts=fechaRaw.split('-');
+  const fecha=fechaParts.length===3?`${fechaParts[2]}-${fechaParts[1]}-${fechaParts[0]}`:fechaRaw;
   if (!monto||monto<=0) { showToast('Ingresa un monto válido',true); return; }
   if (!fecha) { showToast('Ingresa una fecha',true); return; }
   if (!manualFamiliaSel) { showToast('Selecciona una familia',true); return; }
