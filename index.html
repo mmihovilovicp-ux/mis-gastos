@@ -133,6 +133,7 @@
   <button class="tab" id="tab-personal-btn" onclick="showTab('personal')">Personal</button>
   <button class="tab" id="tab-familiar-btn" onclick="showTab('familiar')">Familiar</button>
   <button class="tab" id="tab-gastos-btn" onclick="showTab('gastos')" style="display:none;">Gastos</button>
+  <button class="tab" onclick="showTab('viaje')">Viaje</button>
   <button class="tab" onclick="showTab('config')">Config</button>
 </div>
 
@@ -218,6 +219,40 @@
   </div>
 </div>
 
+<div id="tab-viaje" class="section">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <button onclick="cambiarMesViaje(-1)" class="mes-nav-btn">&#8249;</button>
+    <span id="mes-label-viaje" class="mes-nav-label"></span>
+    <button onclick="cambiarMesViaje(1)" class="mes-nav-btn">&#8250;</button>
+  </div>
+  <div class="subtabs-bar">
+    <button id="subtab-viaje-resumen-btn" class="subtab-btn active" onclick="showSubTabViaje('resumen')">Resumen</button>
+    <button id="subtab-viaje-registros-btn" class="subtab-btn" onclick="showSubTabViaje('registros')">Registros</button>
+  </div>
+
+  <!-- Resumen -->
+  <div id="subtab-viaje-resumen">
+    <div class="stats">
+      <div class="stat"><div class="stat-label">✈️ Total Viaje</div><div class="stat-value" id="stat-total-viaje">$0</div></div>
+      <div class="stat"><div class="stat-label">Transacciones</div><div class="stat-value" id="stat-count-viaje">0</div></div>
+    </div>
+    <!-- Balance -->
+    <div id="viaje-balance" style="background:var(--gris-card);border-radius:14px;border:0.5px solid var(--gris-borde);padding:16px;margin-bottom:12px;"></div>
+    <p class="section-label">Por categoría</p>
+    <div id="lista-resumen-viaje"></div>
+  </div>
+
+  <!-- Registros -->
+  <div id="subtab-viaje-registros" style="display:none;">
+    <button onclick="abrirModalViaje()" style="width:100%;padding:11px;margin-bottom:12px;border:0.5px solid #059669;border-radius:10px;background:none;color:#059669;font-size:14px;font-weight:500;cursor:pointer;">+ Agregar gasto de viaje</button>
+    <div class="search-box">
+      <input type="text" id="buscador-viaje" placeholder="Buscar..." oninput="renderRegistrosViaje()" />
+    </div>
+    <div class="search-count" id="count-viaje"></div>
+    <div id="lista-registros-viaje"></div>
+  </div>
+</div>
+
 <div id="tab-gastos" class="section">
   <div class="demo-banner">👁 Modo Demo — datos de ejemplo</div>
   <div class="mes-nav">
@@ -300,6 +335,38 @@
     </div>
     <button class="btn-guardar" id="btn-guardar-gasto" onclick="guardarGasto()">Guardar en Sheets</button>
     <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-viaje">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h2>Agregar gasto de viaje</h2>
+    <p class="modal-info">Se guardará en Registros y Google Sheets</p>
+    <div class="form-group">
+      <label class="form-label">Categoría</label>
+      <select class="form-input" id="viaje-familia" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;">
+        <option value="">Selecciona...</option><option value="Alojamiento">Alojamiento</option><option value="Comida">Comida</option><option value="Transporte">Transporte</option><option value="Vuelo">Vuelo</option><option value="Entradas">Entradas</option><option value="Otros">Otros</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <input class="form-input" id="viaje-item" placeholder="ej: Hotel, Restaurante, Taxi..." />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Monto</label>
+      <input class="form-input" id="viaje-monto" type="text" inputmode="numeric" placeholder="" oninput="formatearMontoInput(this)" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input class="form-input" id="viaje-fecha" type="date" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">¿Quién pagó?</label>
+      <div class="familia-grid" id="viaje-pagador-grid"></div>
+    </div>
+    <button class="btn-guardar" id="btn-guardar-viaje" onclick="guardarViaje()">Guardar gasto</button>
+    <button class="btn-cancelar" onclick="cerrarModalViaje()">Cancelar</button>
   </div>
 </div>
 
@@ -615,6 +682,256 @@ function renderRegistradosPorTipo(tipo, idLista, idBuscador, idCount, mes) {
   }).join('');
 }
 
+
+// ══ VIAJE ══════════════════════════════════════════════════
+const FAMILIAS_VIAJE = ["Alojamiento", "Comida", "Transporte", "Vuelo", "Entradas", "Otros"];
+const PAGADORES_VIAJE = ["Matias", "Gabriela", "Mati y Gaby"];
+const COLORES_VIAJE = {'Alojamiento':'#6366F1','Comida':'#10B981','Transporte':'#3B82F6','Vuelo':'#F97316','Entradas':'#EC4899','Otros':'#8896AA'};
+let transaccionesViaje = [];
+let viajeRegistroEditIdx = null;
+const mesActualViaje = { fecha: new Date() };
+let pagadorSelViaje = '';
+
+function cambiarMesViaje(delta) {
+  const d = mesActualViaje.fecha;
+  mesActualViaje.fecha = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+  renderViaje();
+}
+
+function showSubTabViaje(sub) {
+  ['resumen','registros'].forEach(s => {
+    const el = document.getElementById('subtab-viaje-' + s);
+    const btn = document.getElementById('subtab-viaje-' + s + '-btn');
+    if (el) el.style.display = s === sub ? '' : 'none';
+    if (btn) btn.className = s === sub ? 'subtab-btn active' : 'subtab-btn';
+  });
+  if (sub === 'registros') renderRegistrosViaje();
+}
+
+function renderViaje() {
+  document.getElementById('mes-label-viaje').textContent = mesLabel(mesActualViaje.fecha);
+  const mes = mesActualViaje.fecha;
+  const delMes = transaccionesViaje.filter(t => {
+    const d = parsearFechaRegistro(t.fecha);
+    return d && d.getMonth() === mes.getMonth() && d.getFullYear() === mes.getFullYear();
+  });
+
+  const total = delMes.reduce((s,t) => s + t.monto, 0);
+  document.getElementById('stat-total-viaje').textContent = '$' + total.toLocaleString('es-CL');
+  document.getElementById('stat-count-viaje').textContent = delMes.length;
+
+  // Balance
+  const pagados = {};
+  PAGADORES_VIAJE.forEach(p => pagados[p] = 0);
+  delMes.forEach(t => {
+    if (t.pagador === 'Mati y Gaby') {
+      pagados['Matias'] += t.monto / 2;
+      pagados['Gabriela'] += t.monto / 2;
+    } else if (pagados[t.pagador] !== undefined) {
+      pagados[t.pagador] += t.monto;
+    }
+  });
+
+  const totalMati = delMes.filter(t => t.pagador === 'Matias').reduce((s,t) => s+t.monto, 0)
+    + delMes.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+  const totalGaby = delMes.filter(t => t.pagador === 'Gabriela').reduce((s,t) => s+t.monto, 0)
+    + delMes.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+
+  const totalReal = totalMati + totalGaby;
+  const mitad = totalReal / 2;
+  const diff = totalMati - mitad;
+  let balanceHTML = '';
+
+  if (delMes.length === 0) {
+    balanceHTML = '<p style="font-size:13px;color:var(--gris-texto);text-align:center;">Sin gastos este mes</p>';
+  } else {
+    balanceHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div><div style="font-size:11px;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Matias pagó</div><div style="font-size:18px;font-weight:600;color:var(--texto);">$${totalMati.toLocaleString('es-CL')}</div></div>
+        <div><div style="font-size:11px;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Gabriela pagó</div><div style="font-size:18px;font-weight:600;color:var(--texto);">$${totalGaby.toLocaleString('es-CL')}</div></div>
+      </div>
+      <div style="border-top:0.5px solid var(--gris-borde);padding-top:12px;">`;
+    if (Math.abs(diff) < 1) {
+      balanceHTML += '<div style="font-size:14px;font-weight:600;color:#059669;text-align:center;">✓ Están al día</div>';
+    } else if (diff > 0) {
+      balanceHTML += `<div style="font-size:14px;font-weight:600;color:#1A56DB;text-align:center;">Gabriela le debe <span style="color:#DC2626;">$${Math.round(diff).toLocaleString('es-CL')}</span> a Matias</div>`;
+    } else {
+      balanceHTML += `<div style="font-size:14px;font-weight:600;color:#1A56DB;text-align:center;">Matias le debe <span style="color:#DC2626;">$${Math.round(-diff).toLocaleString('es-CL')}</span> a Gabriela</div>`;
+    }
+    balanceHTML += '</div>';
+  }
+  document.getElementById('viaje-balance').innerHTML = balanceHTML;
+
+  // Por categoría
+  const porFamilia = {};
+  delMes.forEach(t => {
+    if (!porFamilia[t.familia]) porFamilia[t.familia] = { total: 0, items: [] };
+    porFamilia[t.familia].total += t.monto;
+    porFamilia[t.familia].items.push(t);
+  });
+  const sorted = Object.entries(porFamilia).sort((a,b) => b[1].total - a[1].total);
+  const listaEl = document.getElementById('lista-resumen-viaje');
+  if (sorted.length === 0) { listaEl.innerHTML = ''; return; }
+  listaEl.innerHTML = sorted.map(([f, data], i) => {
+    const detalleId = `detalle-viaje-${i}`;
+    const chevronId = `chevron-viaje-${i}`;
+    const color = COLORES_VIAJE[f] || '#8896AA';
+    const itemsHtml = [...data.items].sort((a,b) => {
+      const fa=(a.fecha||'').match(/(\d{2})-(\d{2})-(\d{4})/);
+      const fb=(b.fecha||'').match(/(\d{2})-(\d{2})-(\d{4})/);
+      const sa=fa?fa[3]+fa[2]+fa[1]:'0';
+      const sb=fb?fb[3]+fb[2]+fb[1]:'0';
+      return sb>sa?1:sb<sa?-1:0;
+    }).map(t => `
+      <div class="resumen-detalle-item">
+        <span class="resumen-detalle-comercio">${t.item}</span>
+        <span class="resumen-detalle-fecha">${t.fecha} · ${t.pagador}</span>
+        <span class="resumen-detalle-monto">$${t.monto.toLocaleString('es-CL')}</span>
+      </div>`).join('');
+    return `
+      <div class="resumen-item" onclick="toggleDetalle('${detalleId}','${chevronId}')">
+        <span class="resumen-familia"><span class="familia-dot" style="background:${color}"></span>${f} <span class="resumen-chevron" id="${chevronId}">▶</span></span>
+        <span class="resumen-monto">$${data.total.toLocaleString('es-CL')}</span>
+      </div>
+      <div class="resumen-detalle" id="${detalleId}">${itemsHtml}</div>`;
+  }).join('');
+}
+
+function renderRegistrosViaje() {
+  const el = document.getElementById('lista-registros-viaje');
+  const countEl = document.getElementById('count-viaje');
+  const query = (document.getElementById('buscador-viaje').value || '').toLowerCase().trim();
+  let base;
+  if (query) {
+    base = transaccionesViaje.filter(t =>
+      (t.item||'').toLowerCase().includes(query) ||
+      (t.familia||'').toLowerCase().includes(query) ||
+      (t.pagador||'').toLowerCase().includes(query) ||
+      (t.fecha||'').includes(query)
+    );
+    countEl.textContent = base.length + ' resultado(s)';
+  } else {
+    const mes = mesActualViaje.fecha;
+    base = transaccionesViaje.filter(t => {
+      const d = parsearFechaRegistro(t.fecha);
+      return d && d.getMonth() === mes.getMonth() && d.getFullYear() === mes.getFullYear();
+    });
+    countEl.textContent = '';
+  }
+  if (base.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">✈️</div><p>Sin gastos de viaje</p></div>';
+    return;
+  }
+  const sorted = [...base].sort((a,b) => {
+    const fa=(a.fecha||'').match(/(\d{2})-(\d{2})-(\d{4})/);
+    const fb=(b.fecha||'').match(/(\d{2})-(\d{2})-(\d{4})/);
+    const sa=fa?fa[3]+fa[2]+fa[1]:'0';
+    const sb=fb?fb[3]+fb[2]+fb[1]:'0';
+    return sb>sa?1:sb<sa?-1:0;
+  });
+  el.innerHTML = sorted.map(t => {
+    const realIdx = transaccionesViaje.indexOf(t);
+    const color = COLORES_VIAJE[t.familia] || '#8896AA';
+    return `<div class="card">
+      <div class="card-header"><span class="card-banco" style="color:${color}">${t.familia}</span><span class="card-fecha">${t.fecha}</span></div>
+      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
+      <div class="card-comercio">${t.item}</div>
+      <span class="card-item-badge">👤 ${t.pagador}</span>
+      <button onclick="editarViaje(${realIdx})" style="width:100%;padding:8px;margin-top:10px;border:0.5px solid #007AFF;border-radius:8px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">✏️ Editar</button>
+    </div>`;
+  }).join('');
+}
+
+function renderPagadorGrid(idGrid, selActual) {
+  const grid = document.getElementById(idGrid);
+  grid.innerHTML = PAGADORES_VIAJE.map(p =>
+    `<button class="familia-btn ${selActual===p?'selected':''}" onclick="selPagadorViaje('${p}','${idGrid}')">${p}</button>`
+  ).join('');
+}
+
+function selPagadorViaje(p, idGrid) {
+  pagadorSelViaje = p;
+  renderPagadorGrid(idGrid, p);
+}
+
+function abrirModalViaje() {
+  pagadorSelViaje = '';
+  document.getElementById('viaje-familia').value = '';
+  document.getElementById('viaje-item').value = '';
+  document.getElementById('viaje-monto').value = '';
+  const hoy = new Date();
+  document.getElementById('viaje-fecha').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+  renderPagadorGrid('viaje-pagador-grid', '');
+  document.getElementById('modal-viaje').classList.add('open');
+}
+
+function cerrarModalViaje() {
+  document.getElementById('modal-viaje').classList.remove('open');
+  viajeRegistroEditIdx = null;
+}
+
+async function guardarViaje() {
+  const familia = document.getElementById('viaje-familia').value;
+  const item = document.getElementById('viaje-item').value.trim();
+  const monto = montoDesdeInput('viaje-monto');
+  const fechaRaw = document.getElementById('viaje-fecha').value.trim();
+  const fechaParts = fechaRaw.split('-');
+  const fecha = fechaParts.length===3 ? `${fechaParts[2]}-${fechaParts[1]}-${fechaParts[0]}` : fechaRaw;
+
+  if (!familia) { showToast('Selecciona una categoría', true); return; }
+  if (!item) { showToast('Escribe una descripción', true); return; }
+  if (!monto || monto <= 0) { showToast('Ingresa un monto válido', true); return; }
+  if (!fecha) { showToast('Ingresa una fecha', true); return; }
+  if (!pagadorSelViaje) { showToast('Selecciona quién pagó', true); return; }
+
+  const btn = document.getElementById('btn-guardar-viaje');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  const registro = { familia, item, monto, fecha, pagador: pagadorSelViaje, textoOriginal: `Viaje: ${item} el ${fecha} por $ ${monto} [${Date.now()}]` };
+
+  if (viajeRegistroEditIdx !== null) {
+    transaccionesViaje[viajeRegistroEditIdx] = registro;
+  } else {
+    transaccionesViaje.push(registro);
+  }
+  localStorage.setItem('gastos_viaje', JSON.stringify(transaccionesViaje));
+
+  let envioOk = true, errorMsg = '';
+  if (config.webhook) {
+    try {
+      const resp = await fetch(config.webhook, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          familia, item, banco: 'Viaje', fecha: fecha + '\u200B',
+          monto, tipo: pagadorSelViaje, texto: registro.textoOriginal
+        })
+      });
+      if (!resp.ok) { envioOk = false; errorMsg = 'HTTP ' + resp.status; }
+    } catch(e) { envioOk = false; errorMsg = e.message; }
+  } else { envioOk = false; errorMsg = 'No hay webhook configurado'; }
+
+  btn.disabled = false; btn.textContent = 'Guardar gasto';
+  cerrarModalViaje();
+  renderViaje();
+  if (document.getElementById('subtab-viaje-registros').style.display !== 'none') renderRegistrosViaje();
+  showToast(envioOk ? '✓ Gasto de viaje guardado' : '⚠ Error: ' + errorMsg, !envioOk);
+}
+
+function editarViaje(i) {
+  viajeRegistroEditIdx = i;
+  const t = transaccionesViaje[i];
+  pagadorSelViaje = t.pagador;
+  document.getElementById('viaje-familia').value = t.familia;
+  document.getElementById('viaje-item').value = t.item;
+  document.getElementById('viaje-monto').value = '$ ' + t.monto.toLocaleString('es-CL');
+  const parts = t.fecha.split('-');
+  document.getElementById('viaje-fecha').value = parts.length===3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : t.fecha;
+  renderPagadorGrid('viaje-pagador-grid', t.pagador);
+  document.getElementById('modal-viaje').classList.add('open');
+}
+// ══ FIN VIAJE ══════════════════════════════════════════════
+
 function init() {
   const stored = localStorage.getItem('gastos_config');
   if (stored) config = { ...config, ...JSON.parse(stored) };
@@ -639,11 +956,15 @@ function init() {
   const now = new Date();
   document.getElementById('header-fecha').textContent = now.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
 
+  const viajeStored = localStorage.getItem('gastos_viaje');
+  if (viajeStored) transaccionesViaje = JSON.parse(viajeStored);
+
   renderFamilias();
   renderPendientes();
   renderRegistrados();
   renderResumen();
   renderResumenDemo();
+  renderViaje();
 }
 
 async function consultarTransaccionNueva() {
@@ -1035,7 +1356,7 @@ function recibirTransaccion(texto, datosManual) {
   renderPendientes();
 }
 function showTab(tab) {
-  const tabs=['pendientes','registrados','personal','familiar','gastos','config'];
+  const tabs=['pendientes','registrados','personal','familiar','gastos','viaje','config'];
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===tab));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
