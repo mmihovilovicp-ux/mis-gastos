@@ -736,51 +736,55 @@ function renderViaje() {
   document.getElementById('stat-total-viaje').textContent = totalStr;
   document.getElementById('stat-count-viaje').textContent = delMes.length;
 
-  // Balance
-  const pagados = {};
-  PAGADORES_VIAJE.forEach(p => pagados[p] = 0);
-  delMes.forEach(t => {
-    if (t.pagador === 'Mati y Gaby') {
-      pagados['Matias'] += t.monto / 2;
-      pagados['Gabriela'] += t.monto / 2;
-    } else if (pagados[t.pagador] !== undefined) {
-      pagados[t.pagador] += t.monto;
+  // Balance por moneda
+  const MONEDAS_VIAJE = ['CLP', 'USD', 'EUR'];
+
+  function calcularBalanceMoneda(lista, moneda) {
+    const del = lista.filter(t => (t.moneda || 'CLP') === moneda);
+    const mati = del.filter(t => t.pagador === 'Matias').reduce((s,t) => s+t.monto, 0)
+      + del.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+    const gaby = del.filter(t => t.pagador === 'Gabriela').reduce((s,t) => s+t.monto, 0)
+      + del.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+    return { mati, gaby, total: mati + gaby };
+  }
+
+  function formatMonto(monto, moneda) {
+    if (moneda === 'CLP') return '$' + Math.round(monto).toLocaleString('es-CL');
+    return moneda + ' ' + monto.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function renderBalanceMoneda(moneda, b) {
+    if (b.total === 0) return '';
+    const diff = b.mati - b.total / 2;
+    const simbolo = moneda === 'CLP' ? '🇨🇱' : moneda === 'USD' ? '🇺🇸' : '🇪🇺';
+    let deudaHTML = '';
+    if (Math.abs(diff) < (moneda === 'CLP' ? 1 : 0.01)) {
+      deudaHTML = `<div style="font-size:13px;font-weight:600;color:#059669;">✓ Al día</div>`;
+    } else if (diff > 0) {
+      deudaHTML = `<div style="font-size:13px;font-weight:600;color:#1A56DB;">Gabriela debe <span style="color:#DC2626;">${formatMonto(Math.abs(diff), moneda)}</span></div>`;
+    } else {
+      deudaHTML = `<div style="font-size:13px;font-weight:600;color:#1A56DB;">Matias debe <span style="color:#DC2626;">${formatMonto(Math.abs(diff), moneda)}</span></div>`;
     }
-  });
+    return `
+      <div style="background:var(--gris-bg);border-radius:10px;padding:12px;margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:600;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">${simbolo} ${moneda}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div><div style="font-size:10px;color:var(--gris-texto);">Matias</div><div style="font-size:15px;font-weight:600;color:var(--texto);">${formatMonto(b.mati, moneda)}</div></div>
+          <div><div style="font-size:10px;color:var(--gris-texto);">Gabriela</div><div style="font-size:15px;font-weight:600;color:var(--texto);">${formatMonto(b.gaby, moneda)}</div></div>
+        </div>
+        <div style="border-top:0.5px solid var(--gris-borde);padding-top:8px;">${deudaHTML}</div>
+      </div>`;
+  }
 
-  // Balance solo con CLP (no mezclar monedas extranjeras)
-  const delMesCLP = delMes.filter(t => !t.moneda || t.moneda === 'CLP');
-  const totalMati = delMesCLP.filter(t => t.pagador === 'Matias').reduce((s,t) => s+t.monto, 0)
-    + delMesCLP.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
-  const totalGaby = delMesCLP.filter(t => t.pagador === 'Gabriela').reduce((s,t) => s+t.monto, 0)
-    + delMesCLP.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
-  const hayMonedaExtranjera = delMes.some(t => t.moneda && t.moneda !== 'CLP');
-
-  const totalReal = totalMati + totalGaby;
-  const mitad = totalReal / 2;
-  const diff = totalMati - mitad;
   let balanceHTML = '';
-
   if (delMes.length === 0) {
     balanceHTML = '<p style="font-size:13px;color:var(--gris-texto);text-align:center;">Sin gastos este mes</p>';
   } else {
-    balanceHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div><div style="font-size:11px;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Matias pagó</div><div style="font-size:18px;font-weight:600;color:var(--texto);">$${totalMati.toLocaleString('es-CL')}</div></div>
-        <div><div style="font-size:11px;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Gabriela pagó</div><div style="font-size:18px;font-weight:600;color:var(--texto);">$${totalGaby.toLocaleString('es-CL')}</div></div>
-      </div>
-      <div style="border-top:0.5px solid var(--gris-borde);padding-top:12px;">`;
-    if (hayMonedaExtranjera) {
-      balanceHTML += '<div style="font-size:11px;color:var(--gris-texto);text-align:center;margin-bottom:8px;">* Balance solo incluye gastos en CLP</div>';
-    }
-    if (Math.abs(diff) < 1) {
-      balanceHTML += '<div style="font-size:14px;font-weight:600;color:#059669;text-align:center;">✓ Están al día (CLP)</div>';
-    } else if (diff > 0) {
-      balanceHTML += `<div style="font-size:14px;font-weight:600;color:#1A56DB;text-align:center;">Gabriela le debe <span style="color:#DC2626;">$${Math.round(diff).toLocaleString('es-CL')}</span> a Matias</div>`;
-    } else {
-      balanceHTML += `<div style="font-size:14px;font-weight:600;color:#1A56DB;text-align:center;">Matias le debe <span style="color:#DC2626;">$${Math.round(-diff).toLocaleString('es-CL')}</span> a Gabriela</div>`;
-    }
-    balanceHTML += '</div>';
+    const bCLP = calcularBalanceMoneda(delMes, 'CLP');
+    const bUSD = calcularBalanceMoneda(delMes, 'USD');
+    const bEUR = calcularBalanceMoneda(delMes, 'EUR');
+    balanceHTML = renderBalanceMoneda('CLP', bCLP) + renderBalanceMoneda('USD', bUSD) + renderBalanceMoneda('EUR', bEUR);
+    if (!balanceHTML) balanceHTML = '<p style="font-size:13px;color:var(--gris-texto);text-align:center;">Sin gastos este mes</p>';
   }
   document.getElementById('viaje-balance').innerHTML = balanceHTML;
 
