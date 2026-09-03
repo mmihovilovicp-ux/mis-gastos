@@ -354,8 +354,16 @@
       <input class="form-input" id="viaje-item" placeholder="ej: Hotel, Restaurante, Taxi..." />
     </div>
     <div class="form-group">
+      <label class="form-label">Moneda</label>
+      <select class="form-input" id="viaje-moneda" style="width:100%;padding:12px 14px;border:0.5px solid var(--gris-borde);border-radius:10px;font-size:15px;background:var(--gris-bg);outline:none;color:var(--texto);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238896AA' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;">
+        <option value="CLP">🇨🇱 CLP — Peso chileno</option>
+        <option value="USD">🇺🇸 USD — Dólar</option>
+        <option value="EUR">🇪🇺 EUR — Euro</option>
+      </select>
+    </div>
+    <div class="form-group">
       <label class="form-label">Monto</label>
-      <input class="form-input" id="viaje-monto" type="text" inputmode="numeric" placeholder="" oninput="formatearMontoInput(this)" />
+      <input class="form-input" id="viaje-monto" type="text" inputmode="decimal" placeholder="" oninput="formatearMontoViaje(this)" />
     </div>
     <div class="form-group">
       <label class="form-label">Fecha</label>
@@ -716,8 +724,16 @@ function renderViaje() {
     return d && d.getMonth() === mes.getMonth() && d.getFullYear() === mes.getFullYear();
   });
 
-  const total = delMes.reduce((s,t) => s + t.monto, 0);
-  document.getElementById('stat-total-viaje').textContent = '$' + total.toLocaleString('es-CL');
+  // Totales separados por moneda
+  const totalesPorMoneda = {};
+  delMes.forEach(t => {
+    const m = t.moneda || 'CLP';
+    totalesPorMoneda[m] = (totalesPorMoneda[m] || 0) + t.monto;
+  });
+  const totalStr = Object.entries(totalesPorMoneda).map(([m, v]) =>
+    m === 'CLP' ? '$' + v.toLocaleString('es-CL') : m + ' ' + v.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})
+  ).join(' + ') || '$0';
+  document.getElementById('stat-total-viaje').textContent = totalStr;
   document.getElementById('stat-count-viaje').textContent = delMes.length;
 
   // Balance
@@ -732,10 +748,13 @@ function renderViaje() {
     }
   });
 
-  const totalMati = delMes.filter(t => t.pagador === 'Matias').reduce((s,t) => s+t.monto, 0)
-    + delMes.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
-  const totalGaby = delMes.filter(t => t.pagador === 'Gabriela').reduce((s,t) => s+t.monto, 0)
-    + delMes.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+  // Balance solo con CLP (no mezclar monedas extranjeras)
+  const delMesCLP = delMes.filter(t => !t.moneda || t.moneda === 'CLP');
+  const totalMati = delMesCLP.filter(t => t.pagador === 'Matias').reduce((s,t) => s+t.monto, 0)
+    + delMesCLP.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+  const totalGaby = delMesCLP.filter(t => t.pagador === 'Gabriela').reduce((s,t) => s+t.monto, 0)
+    + delMesCLP.filter(t => t.pagador === 'Mati y Gaby').reduce((s,t) => s+t.monto/2, 0);
+  const hayMonedaExtranjera = delMes.some(t => t.moneda && t.moneda !== 'CLP');
 
   const totalReal = totalMati + totalGaby;
   const mitad = totalReal / 2;
@@ -751,8 +770,11 @@ function renderViaje() {
         <div><div style="font-size:11px;color:var(--gris-texto);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Gabriela pagó</div><div style="font-size:18px;font-weight:600;color:var(--texto);">$${totalGaby.toLocaleString('es-CL')}</div></div>
       </div>
       <div style="border-top:0.5px solid var(--gris-borde);padding-top:12px;">`;
+    if (hayMonedaExtranjera) {
+      balanceHTML += '<div style="font-size:11px;color:var(--gris-texto);text-align:center;margin-bottom:8px;">* Balance solo incluye gastos en CLP</div>';
+    }
     if (Math.abs(diff) < 1) {
-      balanceHTML += '<div style="font-size:14px;font-weight:600;color:#059669;text-align:center;">✓ Están al día</div>';
+      balanceHTML += '<div style="font-size:14px;font-weight:600;color:#059669;text-align:center;">✓ Están al día (CLP)</div>';
     } else if (diff > 0) {
       balanceHTML += `<div style="font-size:14px;font-weight:600;color:#1A56DB;text-align:center;">Gabriela le debe <span style="color:#DC2626;">$${Math.round(diff).toLocaleString('es-CL')}</span> a Matias</div>`;
     } else {
@@ -786,12 +808,16 @@ function renderViaje() {
       <div class="resumen-detalle-item">
         <span class="resumen-detalle-comercio">${t.item}</span>
         <span class="resumen-detalle-fecha">${t.fecha} · ${t.pagador}</span>
-        <span class="resumen-detalle-monto">$${t.monto.toLocaleString('es-CL')}</span>
+        <span class="resumen-detalle-monto">${(t.moneda && t.moneda !== 'CLP') ? t.moneda + ' ' + t.monto.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : '$' + t.monto.toLocaleString('es-CL')}</span>
       </div>`).join('');
+    // Total por familia separado por moneda
+    const totalesFam = {};
+    data.items.forEach(t => { const m = t.moneda||'CLP'; totalesFam[m] = (totalesFam[m]||0) + t.monto; });
+    const totalFamStr = Object.entries(totalesFam).map(([m,v]) => m==='CLP' ? '$'+v.toLocaleString('es-CL') : m+' '+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})).join(' + ');
     return `
       <div class="resumen-item" onclick="toggleDetalle('${detalleId}','${chevronId}')">
         <span class="resumen-familia"><span class="familia-dot" style="background:${color}"></span>${f} <span class="resumen-chevron" id="${chevronId}">▶</span></span>
-        <span class="resumen-monto">$${data.total.toLocaleString('es-CL')}</span>
+        <span class="resumen-monto">${totalFamStr}</span>
       </div>
       <div class="resumen-detalle" id="${detalleId}">${itemsHtml}</div>`;
   }).join('');
@@ -834,7 +860,7 @@ function renderRegistrosViaje() {
     const color = COLORES_VIAJE[t.familia] || '#8896AA';
     return `<div class="card">
       <div class="card-header"><span class="card-banco" style="color:${color}">${t.familia}</span><span class="card-fecha">${t.fecha}</span></div>
-      <div class="card-monto">$${t.monto.toLocaleString('es-CL')}</div>
+      <div class="card-monto">${(t.moneda && t.moneda !== 'CLP') ? t.moneda + ' ' + t.monto.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}) : '$' + t.monto.toLocaleString('es-CL')}</div>
       <div class="card-comercio">${t.item}</div>
       <span class="card-item-badge">👤 ${t.pagador}</span>
       <button onclick="editarViaje(${realIdx})" style="width:100%;padding:8px;margin-top:10px;border:0.5px solid #007AFF;border-radius:8px;background:none;color:#007AFF;font-size:13px;cursor:pointer;">✏️ Editar</button>
@@ -854,11 +880,39 @@ function selPagadorViaje(p, idGrid) {
   renderPagadorGrid(idGrid, p);
 }
 
+function formatearMontoViaje(input) {
+  const moneda = document.getElementById('viaje-moneda').value;
+  let raw = input.value.replace(/[^0-9.,]/g, '');
+  if (!raw) { input.value = ''; return; }
+  if (moneda === 'CLP') {
+    raw = raw.replace(/\./g, '').replace(',', '');
+    if (!raw) { input.value = ''; return; }
+    input.value = '$ ' + parseInt(raw).toLocaleString('es-CL');
+  } else {
+    // USD/EUR: permitir decimales
+    raw = raw.replace(',', '.');
+    input.value = raw;
+  }
+}
+
+function montoViajeDesdeInput() {
+  const moneda = document.getElementById('viaje-moneda').value;
+  const raw = document.getElementById('viaje-monto').value;
+  if (moneda === 'CLP') {
+    const n = raw.replace(/\D/g, '');
+    return n ? parseInt(n) : 0;
+  } else {
+    const n = parseFloat(raw.replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+}
+
 function abrirModalViaje() {
   pagadorSelViaje = '';
   document.getElementById('viaje-familia').value = '';
   document.getElementById('viaje-item').value = '';
   document.getElementById('viaje-monto').value = '';
+  document.getElementById('viaje-moneda').value = 'CLP';
   const hoy = new Date();
   document.getElementById('viaje-fecha').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
   renderPagadorGrid('viaje-pagador-grid', '');
@@ -873,7 +927,8 @@ function cerrarModalViaje() {
 async function guardarViaje() {
   const familia = document.getElementById('viaje-familia').value;
   const item = document.getElementById('viaje-item').value.trim();
-  const monto = montoDesdeInput('viaje-monto');
+  const moneda = document.getElementById('viaje-moneda').value;
+  const monto = montoViajeDesdeInput();
   const fechaRaw = document.getElementById('viaje-fecha').value.trim();
   const fechaParts = fechaRaw.split('-');
   const fecha = fechaParts.length===3 ? `${fechaParts[2]}-${fechaParts[1]}-${fechaParts[0]}` : fechaRaw;
@@ -887,7 +942,7 @@ async function guardarViaje() {
   const btn = document.getElementById('btn-guardar-viaje');
   btn.disabled = true; btn.textContent = 'Guardando...';
 
-  const registro = { familia, item, monto, fecha, pagador: pagadorSelViaje, textoOriginal: `Viaje: ${item} el ${fecha} por $ ${monto} [${Date.now()}]` };
+  const registro = { familia, item, monto, moneda, fecha, pagador: pagadorSelViaje, textoOriginal: `Viaje: ${item} el ${fecha} por ${moneda} ${monto} [${Date.now()}]` };
 
   if (viajeRegistroEditIdx !== null) {
     transaccionesViaje[viajeRegistroEditIdx] = registro;
@@ -924,7 +979,9 @@ function editarViaje(i) {
   pagadorSelViaje = t.pagador;
   document.getElementById('viaje-familia').value = t.familia;
   document.getElementById('viaje-item').value = t.item;
-  document.getElementById('viaje-monto').value = '$ ' + t.monto.toLocaleString('es-CL');
+  document.getElementById('viaje-moneda').value = t.moneda || 'CLP';
+  const monedaE = t.moneda || 'CLP';
+  document.getElementById('viaje-monto').value = monedaE === 'CLP' ? '$ ' + t.monto.toLocaleString('es-CL') : String(t.monto);
   const parts = t.fecha.split('-');
   document.getElementById('viaje-fecha').value = parts.length===3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : t.fecha;
   renderPagadorGrid('viaje-pagador-grid', t.pagador);
